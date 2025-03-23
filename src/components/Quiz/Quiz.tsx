@@ -7,128 +7,301 @@ import {
   Typography,
   LinearProgress,
   Container,
+  Grid,
 } from '@mui/material';
+import SuperAugurk from '../Common/SuperAugurk';
 
 interface Question {
   question: string;
   options: string[];
   correctAnswer: number;
+  category: 'city' | 'river' | 'mountain' | 'sea' | 'region';
 }
 
 const questions: Question[] = [
   {
-    question: 'Wat is de hoofdstad van Nederland?',
-    options: ['Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht'],
+    category: 'city',
+    question: 'Wat is de hoofdstad van Duitsland?',
+    options: ['Berlijn', 'München', 'Hamburg', 'Frankfurt'],
     correctAnswer: 0,
   },
   {
-    question: 'Welke rivier stroomt door Amsterdam?',
-    options: ['Rijn', 'Maas', 'Amstel', 'Schelde'],
+    category: 'river',
+    question: 'Welke rivier stroomt door Keulen?',
+    options: ['Elbe', 'Donau', 'Rijn', 'Main'],
     correctAnswer: 2,
   },
   {
-    question: 'Wat is de hoogste berg van Nederland?',
-    options: ['Vaalserberg', 'Sint Pietersberg', 'Grensberg', 'Wilhelminaberg'],
+    category: 'mountain',
+    question: 'Wat is de hoogste berg van Duitsland?',
+    options: ['Brocken', 'Zugspitze', 'Feldberg', 'Watzmann'],
+    correctAnswer: 1,
+  },
+  {
+    category: 'sea',
+    question: 'Welke zee grenst aan het noorden van Duitsland?',
+    options: ['Middellandse Zee', 'Noordzee', 'Oostzee', 'Beide B en C'],
+    correctAnswer: 3,
+  },
+  {
+    category: 'region',
+    question: 'Wat is de grootste deelstaat van Duitsland?',
+    options: ['Beieren', 'Saksen', 'Baden-Württemberg', 'Nedersaksen'],
     correctAnswer: 0,
   },
 ];
 
 export default function Quiz() {
-  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
-  const [showScore, setShowScore] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showResult, setShowResult] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Question['category'] | 'all'>('all');
 
-  const handleAnswerClick = (answerIndex: number) => {
-    setSelectedAnswer(answerIndex);
-  };
+  const currentQuestion = questions[currentQuestionIndex];
+  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
 
-  const handleNextQuestion = () => {
-    if (selectedAnswer === questions[currentQuestion].correctAnswer) {
+  const handleAnswer = (answer: string) => {
+    setSelectedAnswer(answer);
+    const correct = answer === questions[currentQuestionIndex].correctAnswer.toString();
+    setIsCorrect(correct);
+    if (correct) {
       setScore(score + 1);
     }
-
-    if (currentQuestion + 1 < questions.length) {
-      setCurrentQuestion(currentQuestion + 1);
-      setSelectedAnswer(null);
-    } else {
-      setShowScore(true);
-    }
+    
+    setTimeout(() => {
+      if (currentQuestionIndex < questions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setSelectedAnswer(null);
+        setIsCorrect(null);
+      } else {
+        setShowResult(true);
+      }
+    }, 1500);
   };
 
-  const handleRestart = () => {
-    setCurrentQuestion(0);
+  const resetQuiz = () => {
+    setCurrentQuestionIndex(0);
     setScore(0);
-    setShowScore(false);
+    setShowResult(false);
     setSelectedAnswer(null);
+    setIsCorrect(null);
   };
 
-  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const filteredQuestions = selectedCategory === 'all'
+    ? questions
+    : questions.filter(q => q.category === selectedCategory);
 
   return (
     <Container maxWidth="md">
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
-          Topografie Quiz
+      <Box sx={{ mt: 4, position: 'relative' }}>
+        <Box sx={{ position: 'absolute', right: -20, top: -60, zIndex: 1 }}>
+          <SuperAugurk 
+            emotion={isCorrect === null ? 'happy' : isCorrect ? 'excited' : 'sad'} 
+            size={120} 
+          />
+        </Box>
+
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          gutterBottom 
+          align="center"
+          sx={{
+            color: '#2E7D32',
+            fontFamily: '"Comic Sans MS", cursive, sans-serif',
+            fontSize: '2.5rem',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
+            mb: 4,
+          }}
+        >
+          Duitse Topografie Quiz!
         </Typography>
 
-        {!showScore ? (
+        {!showResult ? (
           <>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Filter op categorie:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                <Button
+                  variant={selectedCategory === 'all' ? 'contained' : 'outlined'}
+                  size="small"
+                  onClick={() => setSelectedCategory('all')}
+                >
+                  Alle
+                </Button>
+                <Button
+                  variant={selectedCategory === 'city' ? 'contained' : 'outlined'}
+                  size="small"
+                  onClick={() => setSelectedCategory('city')}
+                >
+                  Steden
+                </Button>
+                <Button
+                  variant={selectedCategory === 'river' ? 'contained' : 'outlined'}
+                  size="small"
+                  onClick={() => setSelectedCategory('river')}
+                >
+                  Rivieren
+                </Button>
+                <Button
+                  variant={selectedCategory === 'mountain' ? 'contained' : 'outlined'}
+                  size="small"
+                  onClick={() => setSelectedCategory('mountain')}
+                >
+                  Bergen
+                </Button>
+                <Button
+                  variant={selectedCategory === 'sea' ? 'contained' : 'outlined'}
+                  size="small"
+                  onClick={() => setSelectedCategory('sea')}
+                >
+                  Zeeën
+                </Button>
+                <Button
+                  variant={selectedCategory === 'region' ? 'contained' : 'outlined'}
+                  size="small"
+                  onClick={() => setSelectedCategory('region')}
+                >
+                  Regio's
+                </Button>
+              </Box>
+            </Box>
+
             <LinearProgress
               variant="determinate"
               value={progress}
               sx={{ mb: 4, height: 10, borderRadius: 5 }}
             />
-            <Card>
+            <Card
+              sx={{
+                borderRadius: '20px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+                background: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+                border: '4px solid #A5D6A7',
+              }}
+            >
               <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Vraag {currentQuestion + 1} van {questions.length}
-                </Typography>
-                <Typography variant="h5" gutterBottom>
-                  {questions[currentQuestion].question}
-                </Typography>
-                <Box sx={{ mt: 3 }}>
-                  {questions[currentQuestion].options.map((option, index) => (
-                    <Button
-                      key={index}
-                      variant={selectedAnswer === index ? 'contained' : 'outlined'}
-                      onClick={() => handleAnswerClick(index)}
-                      sx={{ mb: 2, width: '100%', justifyContent: 'flex-start' }}
-                    >
-                      {option}
-                    </Button>
-                  ))}
+                <Box sx={{ mb: 3 }}>
+                  <Typography 
+                    variant="body2" 
+                    align="right" 
+                    sx={{ mt: 1, color: '#2E7D32' }}
+                  >
+                    Vraag {currentQuestionIndex + 1} van {filteredQuestions.length}
+                  </Typography>
                 </Box>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleNextQuestion}
-                  disabled={selectedAnswer === null}
-                  sx={{ mt: 2 }}
+
+                <Typography 
+                  variant="h5" 
+                  gutterBottom
+                  sx={{
+                    fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                    color: '#1B5E20',
+                    mb: 3,
+                  }}
                 >
-                  {currentQuestion + 1 === questions.length ? 'Afronden' : 'Volgende'}
-                </Button>
+                  {currentQuestion.question}
+                </Typography>
+
+                <Grid container spacing={2}>
+                  {filteredQuestions[currentQuestionIndex].options.map((option, index) => (
+                    <Grid item xs={12} sm={6} key={option}>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        onClick={() => handleAnswer(option)}
+                        disabled={selectedAnswer !== null}
+                        sx={{
+                          borderRadius: '15px',
+                          p: 2,
+                          textTransform: 'none',
+                          fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                          fontSize: '1.1rem',
+                          backgroundColor: selectedAnswer === option
+                            ? (isCorrect ? '#4CAF50' : '#F44336')
+                            : '#FFFFFF',
+                          color: selectedAnswer === option
+                            ? '#FFFFFF'
+                            : '#2E7D32',
+                          border: '3px solid #A5D6A7',
+                          '&:hover': {
+                            backgroundColor: '#E8F5E9',
+                            border: '3px solid #4CAF50',
+                          },
+                          '&.Mui-disabled': {
+                            backgroundColor: selectedAnswer === option
+                              ? (isCorrect ? '#4CAF50' : '#F44336')
+                              : '#F5F5F5',
+                            color: selectedAnswer === option
+                              ? '#FFFFFF'
+                              : '#9E9E9E',
+                          },
+                        }}
+                      >
+                        {option}
+                      </Button>
+                    </Grid>
+                  ))}
+                </Grid>
               </CardContent>
             </Card>
           </>
         ) : (
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" gutterBottom>
-                Quiz Afgerond!
-              </Typography>
-              <Typography variant="h5" gutterBottom>
-                Je score: {score} van {questions.length}
-              </Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleRestart}
-                sx={{ mt: 2 }}
-              >
-                Opnieuw Proberen
-              </Button>
-            </CardContent>
+          <Card
+            sx={{
+              borderRadius: '20px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+              background: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+              border: '4px solid #A5D6A7',
+              textAlign: 'center',
+              p: 4,
+            }}
+          >
+            <Typography 
+              variant="h4" 
+              gutterBottom
+              sx={{
+                fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                color: '#1B5E20',
+                mb: 2,
+              }}
+            >
+              {score === filteredQuestions.length ? 'Geweldig gedaan!' : 'Goed geprobeerd!'}
+            </Typography>
+            
+            <Typography 
+              variant="h5" 
+              sx={{
+                fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                color: '#2E7D32',
+                mb: 4,
+              }}
+            >
+              Je score: {score} van de {filteredQuestions.length}
+            </Typography>
+
+            <Button
+              variant="contained"
+              onClick={resetQuiz}
+              sx={{
+                borderRadius: '15px',
+                p: 2,
+                textTransform: 'none',
+                fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                fontSize: '1.2rem',
+                backgroundColor: '#4CAF50',
+                color: '#FFFFFF',
+                '&:hover': {
+                  backgroundColor: '#43A047',
+                },
+              }}
+            >
+              Nog een keer spelen!
+            </Button>
           </Card>
         )}
       </Box>

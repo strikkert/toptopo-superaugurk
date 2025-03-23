@@ -4,175 +4,223 @@ import {
   Card,
   CardContent,
   Typography,
-  Container,
-  Grid,
-  Button,
   TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip,
+  Button,
+  Container,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SuperAugurk from './SuperAugurk';
 
-interface TestPlan {
-  id: string;
-  title: string;
+interface Test {
+  id: number;
   date: string;
-  topics: string[];
-  status: 'planned' | 'completed' | 'cancelled';
+  subject: string;
 }
 
-const availableTopics = [
-  'Hoofdsteden',
-  'Rivieren',
-  'Bergen',
-  'Zeeën',
-  'Provincies',
-  'Grenzen',
-];
-
 export default function TestPlanner() {
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
-  const [testPlans, setTestPlans] = useState<TestPlan[]>([]);
+  const [tests, setTests] = useState<Test[]>([]);
+  const [date, setDate] = useState('');
+  const [subject, setSubject] = useState('');
 
-  const handleAddTestPlan = () => {
-    if (!selectedDate || selectedTopics.length === 0) return;
-
-    const newTestPlan: TestPlan = {
-      id: Date.now().toString(),
-      title: `Toets ${testPlans.length + 1}`,
-      date: selectedDate,
-      topics: [...selectedTopics],
-      status: 'planned',
-    };
-
-    setTestPlans([...testPlans, newTestPlan]);
-    setSelectedTopics([]);
-  };
-
-  const handleDeleteTestPlan = (id: string) => {
-    setTestPlans(testPlans.filter((plan) => plan.id !== id));
-  };
-
-  const getStatusColor = (status: TestPlan['status']) => {
-    switch (status) {
-      case 'completed':
-        return 'success';
-      case 'cancelled':
-        return 'error';
-      default:
-        return 'primary';
+  const handleAddTest = () => {
+    if (date && subject) {
+      setTests([...tests, { id: Date.now(), date, subject }]);
+      setDate('');
+      setSubject('');
     }
   };
 
+  const handleDeleteTest = (id: number) => {
+    setTests(tests.filter(test => test.id !== id));
+  };
+
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
-          Toets Planner
+    <Container maxWidth="md">
+      <Box sx={{ mt: 4, position: 'relative' }}>
+        <Box sx={{ position: 'absolute', right: -20, top: -60, zIndex: 1 }}>
+          <SuperAugurk emotion="thinking" size={120} />
+        </Box>
+
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          gutterBottom 
+          align="center"
+          sx={{
+            color: '#2E7D32',
+            fontFamily: '"Comic Sans MS", cursive, sans-serif',
+            fontSize: '2.5rem',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
+            mb: 4,
+          }}
+        >
+          Plan je Toetsen!
         </Typography>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Nieuwe Toets Plannen
-                </Typography>
-                <TextField
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  fullWidth
-                  sx={{ mb: 2 }}
-                />
-                <FormControl fullWidth sx={{ mb: 2 }}>
-                  <InputLabel>Onderwerpen</InputLabel>
-                  <Select
-                    multiple
-                    value={selectedTopics}
-                    onChange={(e) => setSelectedTopics(e.target.value as string[])}
-                    label="Onderwerpen"
-                  >
-                    {availableTopics.map((topic) => (
-                      <MenuItem key={topic} value={topic}>
-                        {topic}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleAddTestPlan}
-                  disabled={!selectedDate || selectedTopics.length === 0}
-                  fullWidth
-                >
-                  Toets Toevoegen
-                </Button>
-              </CardContent>
-            </Card>
-          </Grid>
+        <Card
+          sx={{
+            borderRadius: '20px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            background: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+            border: '4px solid #A5D6A7',
+            mb: 4,
+          }}
+        >
+          <CardContent>
+            <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+              <TextField
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '15px',
+                    backgroundColor: 'rgba(255,255,255,0.6)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.8)',
+                    },
+                    '& fieldset': {
+                      borderColor: '#A5D6A7',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#4CAF50',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#2E7D32',
+                    },
+                  },
+                }}
+              />
+              <TextField
+                placeholder="Wat ga je leren?"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '15px',
+                    backgroundColor: 'rgba(255,255,255,0.6)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.8)',
+                    },
+                    '& fieldset': {
+                      borderColor: '#A5D6A7',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#4CAF50',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#2E7D32',
+                    },
+                  },
+                }}
+              />
+              <Button
+                onClick={handleAddTest}
+                variant="contained"
+                sx={{
+                  borderRadius: '15px',
+                  textTransform: 'none',
+                  fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                  fontSize: '1.1rem',
+                  backgroundColor: '#4CAF50',
+                  color: '#FFFFFF',
+                  minWidth: '120px',
+                  '&:hover': {
+                    backgroundColor: '#43A047',
+                  },
+                }}
+              >
+                Toevoegen
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
 
-          <Grid item xs={12} md={8}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Geplande Toetsen
-                </Typography>
-                {testPlans.length === 0 ? (
-                  <Typography color="textSecondary">
-                    Nog geen toetsen gepland. Voeg een nieuwe toets toe om te beginnen.
-                  </Typography>
-                ) : (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {testPlans.map((plan) => (
-                      <Card key={plan.id} variant="outlined">
-                        <CardContent>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Box>
-                              <Typography variant="h6">{plan.title}</Typography>
-                              <Typography color="textSecondary">
-                                {new Date(plan.date).toLocaleDateString('nl-NL')}
-                              </Typography>
-                            </Box>
-                            <Box>
-                              <Chip
-                                label={plan.status}
-                                color={getStatusColor(plan.status)}
-                                size="small"
-                                sx={{ mr: 1 }}
-                              />
-                              <Button
-                                size="small"
-                                color="error"
-                                onClick={() => handleDeleteTestPlan(plan.id)}
-                              >
-                                Verwijderen
-                              </Button>
-                            </Box>
-                          </Box>
-                          <Box sx={{ mt: 1 }}>
-                            {plan.topics.map((topic) => (
-                              <Chip
-                                key={topic}
-                                label={topic}
-                                size="small"
-                                sx={{ mr: 1, mb: 1 }}
-                              />
-                            ))}
-                          </Box>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+        {tests.length > 0 && (
+          <Card
+            sx={{
+              borderRadius: '20px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+              background: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+              border: '4px solid #A5D6A7',
+            }}
+          >
+            <CardContent>
+              <Typography 
+                variant="h6" 
+                gutterBottom
+                sx={{
+                  fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                  color: '#1B5E20',
+                  mb: 2,
+                }}
+              >
+                Jouw Toetsen
+              </Typography>
+              <List>
+                {tests.map((test) => (
+                  <ListItem
+                    key={test.id}
+                    sx={{
+                      borderRadius: '15px',
+                      mb: 2,
+                      backgroundColor: 'rgba(255,255,255,0.6)',
+                      '&:hover': {
+                        backgroundColor: 'rgba(255,255,255,0.8)',
+                      },
+                    }}
+                  >
+                    <ListItemText
+                      primary={
+                        <Typography
+                          sx={{
+                            fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                            color: '#1B5E20',
+                            fontSize: '1.2rem',
+                          }}
+                        >
+                          {test.subject}
+                        </Typography>
+                      }
+                      secondary={
+                        <Typography
+                          sx={{
+                            fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                            color: '#2E7D32',
+                          }}
+                        >
+                          {new Date(test.date).toLocaleDateString('nl-NL', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </Typography>
+                      }
+                    />
+                    <IconButton
+                      onClick={() => handleDeleteTest(test.id)}
+                      sx={{
+                        color: '#F44336',
+                        '&:hover': {
+                          backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                        },
+                      }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </ListItem>
+                ))}
+              </List>
+            </CardContent>
+          </Card>
+        )}
       </Box>
     </Container>
   );

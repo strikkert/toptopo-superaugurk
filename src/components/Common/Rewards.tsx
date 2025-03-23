@@ -12,6 +12,8 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import StarIcon from '@mui/icons-material/Star';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import QuizIcon from '@mui/icons-material/Quiz';
+import TerrainIcon from '@mui/icons-material/Terrain';
+import WaterIcon from '@mui/icons-material/Water';
 
 interface Achievement {
   id: string;
@@ -29,7 +31,7 @@ const achievements: Achievement[] = [
     title: 'Quiz Meester',
     description: 'Voltooi 10 quizzen met een score van 80% of hoger',
     icon: <QuizIcon sx={{ fontSize: 40 }} />,
-    progress: 3,
+    progress: 0,
     total: 10,
     unlocked: false,
   },
@@ -38,8 +40,26 @@ const achievements: Achievement[] = [
     title: 'Ontdekkingsreiziger',
     description: 'Bezoek 20 verschillende locaties op de kaart',
     icon: <LocationOnIcon sx={{ fontSize: 40 }} />,
-    progress: 8,
+    progress: 0,
     total: 20,
+    unlocked: false,
+  },
+  {
+    id: 'mountain-climber',
+    title: 'Bergbeklimmer',
+    description: 'Identificeer alle belangrijke bergen in Duitsland',
+    icon: <TerrainIcon sx={{ fontSize: 40 }} />,
+    progress: 0,
+    total: 5,
+    unlocked: false,
+  },
+  {
+    id: 'river-guide',
+    title: 'Riviergids',
+    description: 'Leer alle belangrijke rivieren kennen',
+    icon: <WaterIcon sx={{ fontSize: 40 }} />,
+    progress: 0,
+    total: 5,
     unlocked: false,
   },
   {
@@ -53,7 +73,7 @@ const achievements: Achievement[] = [
   },
   {
     id: 'champion',
-    title: 'Topografie Kampioen',
+    title: 'Duitse Topografie Kampioen',
     description: 'Voltooi alle beschikbare quizzen',
     icon: <EmojiEventsIcon sx={{ fontSize: 40 }} />,
     progress: 0,
@@ -72,7 +92,7 @@ export default function Rewards() {
 
         <Grid container spacing={3}>
           {achievements.map((achievement) => (
-            <Grid item xs={12} sm={6} md={3} key={achievement.id}>
+            <Grid item xs={12} sm={6} md={4} key={achievement.id}>
               <Card
                 sx={{
                   height: '100%',

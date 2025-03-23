@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Card,
@@ -6,88 +6,106 @@ import {
   Typography,
   Container,
   Switch,
-  FormControlLabel,
-  Slider,
-  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
 } from '@mui/material';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import SuperAugurk from './SuperAugurk';
 
 export default function Settings() {
-  const [darkMode, setDarkMode] = useState(false);
-  const [notifications, setNotifications] = useState(true);
-  const [volume, setVolume] = useState(50);
-  const [highContrast, setHighContrast] = useState(false);
+  const [soundEnabled, setSoundEnabled] = React.useState(true);
 
   return (
     <Container maxWidth="md">
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
+      <Box sx={{ mt: 4, position: 'relative' }}>
+        <Box sx={{ position: 'absolute', right: -20, top: -60, zIndex: 1 }}>
+          <SuperAugurk emotion="thinking" size={120} />
+        </Box>
+
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          gutterBottom 
+          align="center"
+          sx={{
+            color: '#2E7D32',
+            fontFamily: '"Comic Sans MS", cursive, sans-serif',
+            fontSize: '2.5rem',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
+            mb: 4,
+          }}
+        >
           Instellingen
         </Typography>
 
-        <Card>
+        <Card
+          sx={{
+            borderRadius: '20px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+            background: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+            border: '4px solid #A5D6A7',
+          }}
+        >
           <CardContent>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Weergave
-              </Typography>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={darkMode}
-                    onChange={(e) => setDarkMode(e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label="Donkere modus"
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={highContrast}
-                    onChange={(e) => setHighContrast(e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label="Hoog contrast"
-              />
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Geluid
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <VolumeUpIcon />
-                <Slider
-                  value={volume}
-                  onChange={(_, value) => setVolume(value as number)}
-                  aria-label="Volume"
-                  valueLabelDisplay="auto"
-                  sx={{ flex: 1 }}
+            <List>
+              <ListItem
+                sx={{
+                  borderRadius: '15px',
+                  mb: 2,
+                  backgroundColor: 'rgba(255,255,255,0.6)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255,255,255,0.8)',
+                  },
+                }}
+              >
+                <VolumeUpIcon 
+                  sx={{ 
+                    mr: 2, 
+                    color: '#2E7D32',
+                    fontSize: '2rem',
+                  }} 
                 />
-              </Box>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Notificaties
-              </Typography>
-              <FormControlLabel
-                control={
+                <ListItemText
+                  primary={
+                    <Typography
+                      sx={{
+                        fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                        color: '#1B5E20',
+                        fontSize: '1.2rem',
+                      }}
+                    >
+                      Geluid
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography
+                      sx={{
+                        fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                        color: '#2E7D32',
+                      }}
+                    >
+                      Zet het geluid aan of uit
+                    </Typography>
+                  }
+                />
+                <ListItemSecondaryAction>
                   <Switch
-                    checked={notifications}
-                    onChange={(e) => setNotifications(e.target.checked)}
-                    color="primary"
+                    checked={soundEnabled}
+                    onChange={(e) => setSoundEnabled(e.target.checked)}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: '#4CAF50',
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: '#81C784',
+                      },
+                    }}
                   />
-                }
-                label="Ontvang notificaties"
-              />
-            </Box>
+                </ListItemSecondaryAction>
+              </ListItem>
+            </List>
           </CardContent>
         </Card>
       </Box>
