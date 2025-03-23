@@ -14,15 +14,11 @@ import {
   MenuItem,
   Chip,
 } from '@mui/material';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import nl from 'date-fns/locale/nl';
 
 interface TestPlan {
   id: string;
   title: string;
-  date: Date;
+  date: string;
   topics: string[];
   status: 'planned' | 'completed' | 'cancelled';
 }
@@ -37,7 +33,7 @@ const availableTopics = [
 ];
 
 export default function TestPlanner() {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [testPlans, setTestPlans] = useState<TestPlan[]>([]);
 
@@ -85,14 +81,13 @@ export default function TestPlanner() {
                 <Typography variant="h6" gutterBottom>
                   Nieuwe Toets Plannen
                 </Typography>
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={nl}>
-                  <DatePicker
-                    label="Datum"
-                    value={selectedDate}
-                    onChange={(newValue) => setSelectedDate(newValue)}
-                    sx={{ width: '100%', mb: 2 }}
-                  />
-                </LocalizationProvider>
+                <TextField
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  fullWidth
+                  sx={{ mb: 2 }}
+                />
                 <FormControl fullWidth sx={{ mb: 2 }}>
                   <InputLabel>Onderwerpen</InputLabel>
                   <Select
@@ -140,7 +135,7 @@ export default function TestPlanner() {
                             <Box>
                               <Typography variant="h6">{plan.title}</Typography>
                               <Typography color="textSecondary">
-                                {plan.date.toLocaleDateString('nl-NL')}
+                                {new Date(plan.date).toLocaleDateString('nl-NL')}
                               </Typography>
                             </Box>
                             <Box>
