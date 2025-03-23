@@ -8,6 +8,7 @@ import {
   IconButton,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Toolbar,
@@ -54,19 +55,19 @@ export default function Layout({ children }: LayoutProps) {
       <Toolbar />
       <List>
         {menuItems.map((item) => (
-          <ListItem
-            button
-            key={item.text}
-            onClick={() => {
-              navigate(item.path);
-              if (isMobile) {
-                handleDrawerToggle();
-              }
-            }}
-            selected={location.pathname === item.path}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
+          <ListItem key={item.text} disablePadding>
+            <ListItemButton
+              onClick={() => {
+                navigate(item.path);
+                if (isMobile) {
+                  handleDrawerToggle();
+                }
+              }}
+              selected={location.pathname === item.path}
+            >
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
           </ListItem>
         ))}
       </List>
