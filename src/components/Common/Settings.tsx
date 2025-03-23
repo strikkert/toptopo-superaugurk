@@ -11,9 +11,6 @@ import {
   Divider,
 } from '@mui/material';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
 
 export default function Settings() {
   const [darkMode, setDarkMode] = useState(false);
