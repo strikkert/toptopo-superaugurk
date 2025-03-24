@@ -51,6 +51,30 @@ const questions: Question[] = [
   },
 ];
 
+const feedbackMessages = {
+  correct: [
+    "Geweldig gedaan! 🌟",
+    "Wauw, dat is super goed! 🎉",
+    "Ik ben zo trots op je! 🏆",
+    "Dat heb je perfect gedaan! ⭐",
+    "Je bent een echte topograaf! 🗺️"
+  ],
+  incorrect: [
+    "Niet getreurd, probeer het nog een keer! 💪",
+    "Je kunt het! Ga door! ⭐",
+    "Bijna goed! Probeer het nog eens! 🎯",
+    "Niet opgeven! Je komt er wel! 🌈",
+    "Laten we het nog een keer proberen! 🎮"
+  ],
+  thinking: [
+    "Hmm, laten we even nadenken... 🤔",
+    "Denk goed na over je antwoord... 🧠",
+    "Je kunt het! Denk na over wat je weet... 💭",
+    "Neem je tijd om na te denken... ⏳",
+    "Laat je hersenen werken... 🧩"
+  ]
+};
+
 export default function Quiz() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -58,14 +82,22 @@ export default function Quiz() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Question['category'] | 'all'>('all');
+  const [feedbackMessage, setFeedbackMessage] = useState<string>('');
 
   const currentQuestion = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+
+  const getRandomMessage = (type: 'correct' | 'incorrect' | 'thinking') => {
+    const messages = feedbackMessages[type];
+    return messages[Math.floor(Math.random() * messages.length)];
+  };
 
   const handleAnswer = (answer: string) => {
     setSelectedAnswer(answer);
     const correct = answer === questions[currentQuestionIndex].correctAnswer.toString();
     setIsCorrect(correct);
+    setFeedbackMessage(getRandomMessage(correct ? 'correct' : 'incorrect'));
+    
     if (correct) {
       setScore(score + 1);
     }
@@ -75,6 +107,7 @@ export default function Quiz() {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
         setSelectedAnswer(null);
         setIsCorrect(null);
+        setFeedbackMessage('');
       } else {
         setShowResult(true);
       }
@@ -87,6 +120,7 @@ export default function Quiz() {
     setShowResult(false);
     setSelectedAnswer(null);
     setIsCorrect(null);
+    setFeedbackMessage('');
   };
 
   const filteredQuestions = selectedCategory === 'all'
@@ -98,8 +132,9 @@ export default function Quiz() {
       <Box sx={{ mt: 4, position: 'relative' }}>
         <Box sx={{ position: 'absolute', right: -20, top: -60, zIndex: 1 }}>
           <SuperAugurk 
-            emotion={isCorrect === null ? 'happy' : isCorrect ? 'excited' : 'sad'} 
-            size={120} 
+            emotion={isCorrect === null ? 'thinking' : isCorrect ? 'excited' : 'sad'} 
+            size={120}
+            message={feedbackMessage}
           />
         </Box>
 
@@ -110,7 +145,7 @@ export default function Quiz() {
           align="center"
           sx={{
             color: '#2E7D32',
-            fontFamily: '"Comic Sans MS", cursive, sans-serif',
+            fontFamily: 'Fredoka, sans-serif',
             fontSize: '2.5rem',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
             mb: 4,
@@ -199,7 +234,7 @@ export default function Quiz() {
                   variant="h5" 
                   gutterBottom
                   sx={{
-                    fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                    fontFamily: 'Fredoka, sans-serif',
                     color: '#1B5E20',
                     mb: 3,
                   }}
@@ -219,7 +254,7 @@ export default function Quiz() {
                           borderRadius: '15px',
                           p: 2,
                           textTransform: 'none',
-                          fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                          fontFamily: 'Fredoka, sans-serif',
                           fontSize: '1.1rem',
                           backgroundColor: selectedAnswer === option
                             ? (isCorrect ? '#4CAF50' : '#F44336')
@@ -257,51 +292,50 @@ export default function Quiz() {
               boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
               background: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
               border: '4px solid #A5D6A7',
-              textAlign: 'center',
               p: 4,
             }}
           >
             <Typography 
               variant="h4" 
+              align="center" 
               gutterBottom
               sx={{
-                fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                fontFamily: 'Fredoka, sans-serif',
                 color: '#1B5E20',
-                mb: 2,
               }}
             >
-              {score === filteredQuestions.length ? 'Geweldig gedaan!' : 'Goed geprobeerd!'}
+              Quiz afgerond! 🎉
             </Typography>
-            
             <Typography 
               variant="h5" 
+              align="center" 
               sx={{
-                fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                fontFamily: 'Fredoka, sans-serif',
                 color: '#2E7D32',
                 mb: 4,
               }}
             >
-              Je score: {score} van de {filteredQuestions.length}
+              Je score: {score} van {questions.length} ({Math.round((score / questions.length) * 100)}%)
             </Typography>
-
-            <Button
-              variant="contained"
-              onClick={resetQuiz}
-              sx={{
-                borderRadius: '15px',
-                p: 2,
-                textTransform: 'none',
-                fontFamily: '"Comic Sans MS", cursive, sans-serif',
-                fontSize: '1.2rem',
-                backgroundColor: '#4CAF50',
-                color: '#FFFFFF',
-                '&:hover': {
-                  backgroundColor: '#43A047',
-                },
-              }}
-            >
-              Nog een keer spelen!
-            </Button>
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Button
+                variant="contained"
+                onClick={resetQuiz}
+                sx={{
+                  borderRadius: '15px',
+                  p: 2,
+                  textTransform: 'none',
+                  fontFamily: 'Fredoka, sans-serif',
+                  fontSize: '1.1rem',
+                  backgroundColor: '#4CAF50',
+                  '&:hover': {
+                    backgroundColor: '#388E3C',
+                  },
+                }}
+              >
+                Opnieuw spelen
+              </Button>
+            </Box>
           </Card>
         )}
       </Box>
