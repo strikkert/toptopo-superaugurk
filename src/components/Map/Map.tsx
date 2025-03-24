@@ -116,9 +116,10 @@ export default function Map() {
           align="center"
           sx={{
             color: '#2E7D32',
-            fontFamily: '"Comic Sans MS", cursive, sans-serif',
+            fontFamily: 'Fredoka, sans-serif',
             fontSize: '2.5rem',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
+            mb: 4,
           }}
         >
           Ontdek Duitsland met SuperAugurk!
@@ -158,7 +159,7 @@ export default function Map() {
                           <Typography 
                             variant="subtitle1"
                             sx={{ 
-                              fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                              fontFamily: 'Fredoka, sans-serif',
                               color: '#2E7D32',
                             }}
                           >
@@ -188,7 +189,7 @@ export default function Map() {
                   variant="h6" 
                   gutterBottom
                   sx={{
-                    fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                    fontFamily: 'Fredoka, sans-serif',
                     color: '#2E7D32',
                   }}
                 >
@@ -200,8 +201,9 @@ export default function Map() {
                       variant="h5" 
                       gutterBottom
                       sx={{
-                        fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                        fontFamily: 'Fredoka, sans-serif',
                         color: '#1B5E20',
+                        mb: 3,
                       }}
                     >
                       {selectedLocation.name}
@@ -209,7 +211,7 @@ export default function Map() {
                     <Typography 
                       color="textSecondary" 
                       paragraph
-                      sx={{ fontSize: '1.1rem' }}
+                      sx={{ fontSize: '1.1rem', fontFamily: 'Fredoka, sans-serif', color: '#2E7D32' }}
                     >
                       {selectedLocation.description}
                     </Typography>
@@ -227,7 +229,7 @@ export default function Map() {
                     variant="subtitle1" 
                     gutterBottom
                     sx={{
-                      fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                      fontFamily: 'Fredoka, sans-serif',
                       color: '#2E7D32',
                     }}
                   >
@@ -243,7 +245,7 @@ export default function Map() {
                         sx={{
                           borderRadius: '15px',
                           textTransform: 'none',
-                          fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                          fontFamily: 'Fredoka, sans-serif',
                           backgroundColor: selectedType === type ? '#4CAF50' : 'transparent',
                           borderColor: '#4CAF50',
                           color: selectedType === type ? 'white' : '#4CAF50',

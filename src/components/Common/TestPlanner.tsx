@@ -52,7 +52,7 @@ export default function TestPlanner() {
           align="center"
           sx={{
             color: '#2E7D32',
-            fontFamily: '"Comic Sans MS", cursive, sans-serif',
+            fontFamily: 'Fredoka, sans-serif',
             fontSize: '2.5rem',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
             mb: 4,
@@ -126,7 +126,7 @@ export default function TestPlanner() {
                 sx={{
                   borderRadius: '15px',
                   textTransform: 'none',
-                  fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                  fontFamily: 'Fredoka, sans-serif',
                   fontSize: '1.1rem',
                   backgroundColor: '#4CAF50',
                   color: '#FFFFFF',
@@ -156,9 +156,9 @@ export default function TestPlanner() {
                 variant="h6" 
                 gutterBottom
                 sx={{
-                  fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                  fontFamily: 'Fredoka, sans-serif',
                   color: '#1B5E20',
-                  mb: 2,
+                  mb: 3,
                 }}
               >
                 Jouw Toetsen
@@ -180,7 +180,7 @@ export default function TestPlanner() {
                       primary={
                         <Typography
                           sx={{
-                            fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                            fontFamily: 'Fredoka, sans-serif',
                             color: '#1B5E20',
                             fontSize: '1.2rem',
                           }}
@@ -191,7 +191,7 @@ export default function TestPlanner() {
                       secondary={
                         <Typography
                           sx={{
-                            fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                            fontFamily: 'Fredoka, sans-serif',
                             color: '#2E7D32',
                           }}
                         >

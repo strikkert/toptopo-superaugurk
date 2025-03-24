@@ -31,7 +31,7 @@ export default function Settings() {
           align="center"
           sx={{
             color: '#2E7D32',
-            fontFamily: '"Comic Sans MS", cursive, sans-serif',
+            fontFamily: 'Fredoka, sans-serif',
             fontSize: '2.5rem',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
             mb: 4,
@@ -71,7 +71,7 @@ export default function Settings() {
                   primary={
                     <Typography
                       sx={{
-                        fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                        fontFamily: 'Fredoka, sans-serif',
                         color: '#1B5E20',
                         fontSize: '1.2rem',
                       }}
@@ -82,7 +82,7 @@ export default function Settings() {
                   secondary={
                     <Typography
                       sx={{
-                        fontFamily: '"Comic Sans MS", cursive, sans-serif',
+                        fontFamily: 'Fredoka, sans-serif',
                         color: '#2E7D32',
                       }}
                     >
