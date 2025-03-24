@@ -28,15 +28,6 @@ const float = keyframes`
   50% { transform: translateY(-5px) rotate(2deg); }
 `;
 
-const messages = {
-  happy: "Geweldig gedaan! 🌟",
-  excited: "Wauw, dat is super goed! 🎉",
-  thinking: "Hmm, laten we even nadenken... 🤔",
-  sad: "Niet getreurd, probeer het nog een keer! 💪",
-  proud: "Ik ben zo trots op je! 🏆",
-  encouraging: "Je kunt het! Ga door! ⭐"
-};
-
 export default function SuperAugurk({ emotion = 'happy', size = 100, message }: SuperAugurkProps) {
   const getEyeStyle = () => {
     switch (emotion) {
