@@ -22,7 +22,6 @@ import QuizIcon from '@mui/icons-material/Quiz';
 import MapIcon from '@mui/icons-material/Map';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import SettingsIcon from '@mui/icons-material/Settings';
-import EventNoteIcon from '@mui/icons-material/EventNote';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import EventIcon from '@mui/icons-material/Event';
 
