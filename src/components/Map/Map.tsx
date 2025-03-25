@@ -138,23 +138,13 @@ export default function Map() {
               <CardContent sx={{ p: 2 }}>
                 <Box sx={{ height: '60vh', position: 'relative', borderRadius: '16px', overflow: 'hidden' }}>
                   <MapContainer
-                    center={GERMANY_CENTER}
-                    zoom={5}
+                    center={[52.3676, 4.9041]}
+                    zoom={7}
                     style={{ height: '100%', width: '100%' }}
                   >
                     <TileLayer
+                      url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      detectRetina={true}
-                      maxZoom={19}
-                      minZoom={3}
-                      noWrap={true}
-                      updateWhenIdle={true}
-                      updateWhenZooming={false}
-                      updateInterval={150}
-                      zIndex={1}
-                      opacity={0.8}
-                      className="map-tiles"
                     />
                     {filteredLocations.map((location) => (
                       <Marker

@@ -133,31 +133,27 @@ export default function Quiz() {
     return str.toLowerCase().trim();
   };
 
-  const handleTypedAnswer = (answer: string) => {
-    setState(prev => ({ ...prev, typedAnswer: answer }));
+  const handleTypedAnswer = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setState(prev => ({ ...prev, typedAnswer: e.target.value }));
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && state.typedAnswer) {
+      checkTypedAnswer();
+    }
   };
 
   const checkTypedAnswer = () => {
-    if (!state.currentLocation || !state.isAnswering) return;
+    if (!state.currentLocation || !state.typedAnswer) return;
 
-    const normalizedAnswer = normalizeString(state.typedAnswer);
-    const normalizedCorrect = normalizeString(state.currentLocation.name);
-    const isCorrect = normalizedAnswer === normalizedCorrect;
-    
-    let feedbackMessage = '';
-    if (isCorrect) {
-      feedbackMessage = 'Goed gedaan!';
-    } else if (normalizedAnswer.length > 0) {
-      feedbackMessage = `Niet helemaal juist. Het juiste antwoord is: ${state.currentLocation.name}`;
-    }
-
+    const isCorrect = state.typedAnswer.toLowerCase() === state.currentLocation.name.toLowerCase();
     setState(prev => ({
       ...prev,
       isAnswering: false,
       feedback: isCorrect ? 'correct' : 'wrong',
-      feedbackMessage,
+      feedbackMessage: isCorrect ? 'Goed gedaan!' : `Niet juist. Het juiste antwoord is: ${state.currentLocation!.name}`,
       correctAnswers: isCorrect ? prev.correctAnswers + 1 : prev.correctAnswers,
-      wrongAnswers: !isCorrect ? prev.wrongAnswers + 1 : prev.wrongAnswers,
+      wrongAnswers: isCorrect ? prev.wrongAnswers : prev.wrongAnswers + 1,
       answeredLocations: [...prev.answeredLocations, state.currentLocation!.name],
     }));
 
@@ -365,15 +361,42 @@ export default function Quiz() {
                           fullWidth
                           variant="outlined"
                           value={state.typedAnswer}
-                          onChange={(e) => handleTypedAnswer(e.target.value)}
-                          disabled={!state.isAnswering}
+                          onChange={handleTypedAnswer}
+                          onKeyPress={handleKeyPress}
                           placeholder="Type je antwoord hier..."
+                          disabled={!state.isAnswering}
+                          InputProps={{
+                            endAdornment: state.feedback && (
+                              <Box sx={{ 
+                                display: 'flex', 
+                                alignItems: 'center',
+                                color: state.feedback === 'correct' ? 'var(--duolingo-green)' : 'var(--duolingo-red)',
+                                mr: 1
+                              }}>
+                                {state.feedback === 'correct' ? '✓' : '✗'}
+                              </Box>
+                            ),
+                          }}
                           sx={{
                             mb: 2,
                             '& .MuiOutlinedInput-root': {
-                              borderRadius: '15px',
+                              borderRadius: '12px',
+                              backgroundColor: state.feedback === 'correct' ? '#E8F5E9' :
+                                           state.feedback === 'wrong' ? '#FFEBEE' : 'white',
+                              '& fieldset': {
+                                borderColor: state.feedback === 'correct' ? 'var(--duolingo-green)' :
+                                           state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-gray)',
+                                borderWidth: state.feedback ? '2px' : '1px',
+                              },
+                              '&:hover fieldset': {
+                                borderColor: state.feedback === 'correct' ? 'var(--duolingo-green)' :
+                                           state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-blue)',
+                              },
+                            },
+                            '& .MuiInputLabel-root': {
                               fontFamily: 'Fredoka, sans-serif',
-                              backgroundColor: 'white',
+                              color: state.feedback === 'correct' ? 'var(--duolingo-green)' :
+                                     state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-gray)',
                             },
                           }}
                         />
@@ -388,13 +411,16 @@ export default function Quiz() {
                             textTransform: 'none',
                             fontFamily: 'Fredoka, sans-serif',
                             fontSize: '1.1rem',
-                            backgroundColor: 'var(--duolingo-blue)',
+                            backgroundColor: state.feedback === 'correct' ? 'var(--duolingo-green)' :
+                                         state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-blue)',
                             '&:hover': {
-                              backgroundColor: '#1B5E20',
+                              backgroundColor: state.feedback === 'correct' ? '#4CAF50' :
+                                           state.feedback === 'wrong' ? '#d32f2f' : '#1B5E20',
                             },
                           }}
                         >
-                          Controleer
+                          {state.feedback === 'correct' ? 'Goed!' :
+                           state.feedback === 'wrong' ? 'Fout!' : 'Controleer'}
                         </Button>
                       </Box>
                     )}
