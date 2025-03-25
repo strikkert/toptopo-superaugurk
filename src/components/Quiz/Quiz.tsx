@@ -75,12 +75,7 @@ export default function Quiz() {
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [isAnswering, setIsAnswering] = useState(false);
 
-  // Initialiseer de quiz
-  useEffect(() => {
-    selectNextLocation();
-  }, []);
-
-  const selectNextLocation = () => {
+  const selectNextLocation = React.useCallback(() => {
     const remainingLocations = locations.filter(loc => !answeredLocations.includes(loc.name));
     if (remainingLocations.length === 0) {
       // Quiz is afgelopen
@@ -99,7 +94,12 @@ export default function Quiz() {
     setOptions(allOptions.sort(() => Math.random() - 0.5));
     setFeedback(null);
     setIsAnswering(true);
-  };
+  }, [answeredLocations]);
+
+  // Initialiseer de quiz
+  useEffect(() => {
+    selectNextLocation();
+  }, [selectNextLocation]);
 
   const handleAnswer = (answer: string) => {
     if (!isAnswering || !currentLocation) return;
