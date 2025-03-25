@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Card,
@@ -67,34 +67,40 @@ const getMarkerIcon = (type: Location['type'], isSelected: boolean, isCurrent: b
   });
 };
 
-type QuestionType = 'multiple-choice' | 'type';
+type QuestionType = 'multiple-choice' | 'type' | 'location';
 
 interface QuizState {
   currentLocation: Location | null;
-  options: string[];
+  typedAnswer: string;
+  feedback: 'correct' | 'wrong' | 'warning' | null;
+  feedbackMessage: string;
+  message: string;
+  isHappy: boolean;
   answeredLocations: string[];
+  questionType: QuestionType;
+  isAnswering: boolean;
   correctAnswers: number;
   wrongAnswers: number;
-  feedback: 'correct' | 'wrong' | 'warning' | null;
-  isAnswering: boolean;
-  questionType: QuestionType;
-  typedAnswer: string;
-  feedbackMessage: string;
+  options: string[];
 }
 
+const initialState: QuizState = {
+  currentLocation: locations[0],
+  typedAnswer: '',
+  feedback: null,
+  feedbackMessage: '',
+  message: '',
+  isHappy: true,
+  answeredLocations: [],
+  questionType: 'location',
+  isAnswering: false,
+  correctAnswers: 0,
+  wrongAnswers: 0,
+  options: []
+};
+
 export default function Quiz() {
-  const [state, setState] = useState<QuizState>({
-    currentLocation: null,
-    options: [],
-    answeredLocations: [],
-    correctAnswers: 0,
-    wrongAnswers: 0,
-    feedback: null,
-    isAnswering: false,
-    questionType: 'multiple-choice',
-    typedAnswer: '',
-    feedbackMessage: '',
-  });
+  const [state, setState] = useState<QuizState>(initialState);
 
   const selectNextLocation = React.useCallback(() => {
     const remainingLocations = locations.filter(loc => !state.answeredLocations.includes(loc.name));
@@ -217,13 +223,109 @@ export default function Quiz() {
 
   const progress = (state.answeredLocations.length / locations.length) * 100;
 
+  const mapRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<L.Layer[]>([]);
+
+  const mapOptions: L.MapOptions = {
+    center: [52.3676, 4.9041] as L.LatLngTuple,
+    zoom: 7,
+    minZoom: 6,
+    maxZoom: 10,
+    zoomControl: false,
+    attributionControl: false,
+    layers: [
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+      }),
+      L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        maxZoom: 17,
+        attribution: '© OpenTopoMap contributors'
+      })
+    ]
+  };
+
+  const renderMap = () => {
+    if (!mapRef.current) {
+      mapRef.current = L.map('quiz-map', mapOptions);
+      mapRef.current.setView([52.3676, 4.9041], 7);
+      L.control.zoom({ position: 'bottomright' }).addTo(mapRef.current);
+    }
+
+    // Verwijder bestaande markers
+    if (markersRef.current) {
+      markersRef.current.forEach(marker => marker.remove());
+      markersRef.current = [];
+    }
+
+    // Voeg nieuwe markers toe
+    const newMarkers = locations.map(location => {
+      const marker = L.circleMarker([location.lat, location.lng], {
+        radius: 6,
+        fillColor: '#4CAF50',
+        color: '#fff',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.8
+      }).addTo(mapRef.current!);
+
+      marker.bindPopup(location.name);
+      return marker;
+    });
+
+    markersRef.current = newMarkers;
+  };
+
+  const handleAnswer = (option?: string) => {
+    if (!state.currentLocation) return;
+    
+    const currentLocationName = state.currentLocation.name;
+    const isCorrect = option 
+      ? option.toLowerCase() === currentLocationName.toLowerCase()
+      : state.typedAnswer.toLowerCase() === currentLocationName.toLowerCase();
+      
+    const feedbackMessage = isCorrect 
+      ? `Goed gedaan! ${currentLocationName} is inderdaad correct!`
+      : `Helaas, dat is niet correct. Het juiste antwoord is ${currentLocationName}.`;
+
+    setState(prev => ({
+      ...prev,
+      feedback: isCorrect ? 'correct' : 'wrong',
+      feedbackMessage,
+      message: feedbackMessage,
+      isHappy: isCorrect,
+      answeredLocations: [...prev.answeredLocations, currentLocationName],
+      currentLocation: locations.find(loc => !prev.answeredLocations.includes(loc.name) && loc !== state.currentLocation) || locations[0],
+      typedAnswer: '',
+      correctAnswers: isCorrect ? prev.correctAnswers + 1 : prev.correctAnswers,
+      wrongAnswers: !isCorrect ? prev.wrongAnswers + 1 : prev.wrongAnswers
+    }));
+  };
+
+  const handleSkip = () => {
+    if (!state.currentLocation) return;
+    
+    const currentLocationName = state.currentLocation.name;
+    setState(prev => ({
+      ...prev,
+      feedback: 'wrong',
+      feedbackMessage: `Het juiste antwoord was ${currentLocationName}.`,
+      message: `Het juiste antwoord was ${currentLocationName}.`,
+      isHappy: false,
+      answeredLocations: [...prev.answeredLocations, currentLocationName],
+      currentLocation: locations.find(loc => !prev.answeredLocations.includes(loc.name) && loc !== state.currentLocation) || locations[0],
+      typedAnswer: '',
+      wrongAnswers: prev.wrongAnswers + 1
+    }));
+  };
+
   return (
     <Container maxWidth="lg">
       <Box sx={{ mt: 4, position: 'relative' }}>
         <Box sx={{ position: 'absolute', right: -20, top: -60, zIndex: 1 }}>
           <SuperAugurk 
-            emotion={state.feedback === 'correct' ? 'happy' : state.feedback === 'wrong' ? 'sad' : 'thinking'} 
-            size={120} 
+            message={state.message} 
+            isHappy={state.isHappy}
           />
         </Box>
 
@@ -363,34 +465,18 @@ export default function Quiz() {
                 {state.currentLocation ? (
                   <Box sx={{ mt: 3 }}>
                     {state.questionType === 'multiple-choice' ? (
-                      // Multiple choice opties
-                      state.options.map((option, index) => (
-                        <Button
-                          key={index}
-                          variant="contained"
-                          fullWidth
-                          onClick={() => handleMultipleChoiceAnswer(option)}
-                          disabled={!state.isAnswering}
-                          sx={{
-                            mb: 2,
-                            py: 2,
-                            borderRadius: '12px',
-                            textTransform: 'none',
-                            fontFamily: 'Fredoka, sans-serif',
-                            fontSize: '1.1rem',
-                            backgroundColor: state.feedback === 'correct' && option === state.currentLocation?.name ? 'var(--duolingo-green)' :
-                                         state.feedback === 'wrong' && option === state.currentLocation?.name ? 'var(--duolingo-red)' :
-                                         state.feedback && option === state.currentLocation?.name ? 'var(--duolingo-green)' : 'var(--duolingo-blue)',
-                            '&:hover': {
-                              backgroundColor: state.feedback === 'correct' && option === state.currentLocation?.name ? '#4CAF50' :
-                                           state.feedback === 'wrong' && option === state.currentLocation?.name ? '#d32f2f' :
-                                           state.feedback && option === state.currentLocation?.name ? '#4CAF50' : '#1B5E20',
-                            },
-                          }}
-                        >
-                          {option}
-                        </Button>
-                      ))
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                        {state.options.map((option: string, index: number) => (
+                          <Button
+                            key={index}
+                            variant="outlined"
+                            onClick={() => handleAnswer(option)}
+                            disabled={state.isAnswering}
+                          >
+                            {option}
+                          </Button>
+                        ))}
+                      </Box>
                     ) : (
                       // Type antwoord interface
                       <Box>
