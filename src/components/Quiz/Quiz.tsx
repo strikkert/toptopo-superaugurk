@@ -9,6 +9,7 @@ import {
   Button,
   LinearProgress,
   Paper,
+  TextField,
 } from '@mui/material';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import L from 'leaflet';
@@ -66,69 +67,129 @@ const getMarkerIcon = (type: Location['type'], isSelected: boolean, isCurrent: b
   });
 };
 
+type QuestionType = 'multiple-choice' | 'type';
+
+interface QuizState {
+  currentLocation: Location | null;
+  options: string[];
+  answeredLocations: string[];
+  correctAnswers: number;
+  wrongAnswers: number;
+  feedback: 'correct' | 'wrong' | null;
+  isAnswering: boolean;
+  questionType: QuestionType;
+  typedAnswer: string;
+  feedbackMessage: string;
+}
+
 export default function Quiz() {
-  const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
-  const [options, setOptions] = useState<string[]>([]);
-  const [answeredLocations, setAnsweredLocations] = useState<string[]>([]);
-  const [correctAnswers, setCorrectAnswers] = useState(0);
-  const [wrongAnswers, setWrongAnswers] = useState(0);
-  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
-  const [isAnswering, setIsAnswering] = useState(false);
+  const [state, setState] = useState<QuizState>({
+    currentLocation: null,
+    options: [],
+    answeredLocations: [],
+    correctAnswers: 0,
+    wrongAnswers: 0,
+    feedback: null,
+    isAnswering: false,
+    questionType: 'multiple-choice',
+    typedAnswer: '',
+    feedbackMessage: '',
+  });
 
   const selectNextLocation = React.useCallback(() => {
-    const remainingLocations = locations.filter(loc => !answeredLocations.includes(loc.name));
+    const remainingLocations = locations.filter(loc => !state.answeredLocations.includes(loc.name));
     if (remainingLocations.length === 0) {
-      // Quiz is afgelopen
       return;
     }
 
     const randomIndex = Math.floor(Math.random() * remainingLocations.length);
     const selected = remainingLocations[randomIndex];
     
-    // Genereer opties
+    // Genereer opties voor multiple choice
     const otherLocations = locations.filter(loc => loc.name !== selected.name);
     const shuffledOthers = [...otherLocations].sort(() => Math.random() - 0.5).slice(0, 3);
     const allOptions = [selected.name, ...shuffledOthers.map(loc => loc.name)];
     
-    setCurrentLocation(selected);
-    setOptions(allOptions.sort(() => Math.random() - 0.5));
-    setFeedback(null);
-    setIsAnswering(true);
-  }, [answeredLocations]);
+    // Willekeurig kiezen tussen multiple choice en type vraag
+    const questionType: QuestionType = Math.random() < 0.5 ? 'multiple-choice' : 'type';
 
-  // Initialiseer de quiz
+    setState(prev => ({
+      ...prev,
+      currentLocation: selected,
+      options: allOptions.sort(() => Math.random() - 0.5),
+      feedback: null,
+      isAnswering: true,
+      questionType,
+      typedAnswer: '',
+      feedbackMessage: '',
+    }));
+  }, [state.answeredLocations]);
+
   useEffect(() => {
     selectNextLocation();
   }, [selectNextLocation]);
 
-  const handleAnswer = (answer: string) => {
-    if (!isAnswering || !currentLocation) return;
+  const normalizeString = (str: string): string => {
+    return str.toLowerCase().trim();
+  };
+
+  const handleTypedAnswer = (answer: string) => {
+    setState(prev => ({ ...prev, typedAnswer: answer }));
+  };
+
+  const checkTypedAnswer = () => {
+    if (!state.currentLocation || !state.isAnswering) return;
+
+    const normalizedAnswer = normalizeString(state.typedAnswer);
+    const normalizedCorrect = normalizeString(state.currentLocation.name);
+    const isCorrect = normalizedAnswer === normalizedCorrect;
     
-    setIsAnswering(false);
-    const isCorrect = answer === currentLocation.name;
-    
+    let feedbackMessage = '';
     if (isCorrect) {
-      setCorrectAnswers(prev => prev + 1);
-      setFeedback('correct');
-    } else {
-      setWrongAnswers(prev => prev + 1);
-      setFeedback('wrong');
+      feedbackMessage = 'Goed gedaan!';
+    } else if (normalizedAnswer.length > 0) {
+      feedbackMessage = `Niet helemaal juist. Het juiste antwoord is: ${state.currentLocation.name}`;
     }
-    
-    setAnsweredLocations(prev => [...prev, currentLocation.name]);
-    
-    // Wacht 2 seconden voordat we naar de volgende vraag gaan
+
+    setState(prev => ({
+      ...prev,
+      isAnswering: false,
+      feedback: isCorrect ? 'correct' : 'wrong',
+      feedbackMessage,
+      correctAnswers: isCorrect ? prev.correctAnswers + 1 : prev.correctAnswers,
+      wrongAnswers: !isCorrect ? prev.wrongAnswers + 1 : prev.wrongAnswers,
+      answeredLocations: [...prev.answeredLocations, state.currentLocation!.name],
+    }));
+
     setTimeout(selectNextLocation, 2000);
   };
 
-  const progress = (answeredLocations.length / locations.length) * 100;
+  const handleMultipleChoiceAnswer = (answer: string) => {
+    if (!state.isAnswering || !state.currentLocation) return;
+    
+    const isCorrect = answer === state.currentLocation.name;
+    
+    setState(prev => ({
+      ...prev,
+      isAnswering: false,
+      feedback: isCorrect ? 'correct' : 'wrong',
+      feedbackMessage: isCorrect ? 'Goed gedaan!' : `Niet juist. Het juiste antwoord is: ${state.currentLocation!.name}`,
+      correctAnswers: isCorrect ? prev.correctAnswers + 1 : prev.correctAnswers,
+      wrongAnswers: !isCorrect ? prev.wrongAnswers + 1 : prev.wrongAnswers,
+      answeredLocations: [...prev.answeredLocations, state.currentLocation!.name],
+    }));
+    
+    setTimeout(selectNextLocation, 2000);
+  };
+
+  const progress = (state.answeredLocations.length / locations.length) * 100;
 
   return (
     <Container maxWidth="lg">
       <Box sx={{ mt: 4, position: 'relative' }}>
         <Box sx={{ position: 'absolute', right: -20, top: -60, zIndex: 1 }}>
           <SuperAugurk 
-            emotion={feedback === 'correct' ? 'happy' : feedback === 'wrong' ? 'sad' : 'thinking'} 
+            emotion={state.feedback === 'correct' ? 'happy' : state.feedback === 'wrong' ? 'sad' : 'thinking'} 
             size={120} 
           />
         </Box>
@@ -146,17 +207,17 @@ export default function Quiz() {
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={4}>
               <Typography variant="h6" sx={{ fontFamily: 'Fredoka, sans-serif', color: '#2E7D32' }}>
-                Voortgang: {answeredLocations.length} van {locations.length}
+                Voortgang: {state.answeredLocations.length} van {locations.length}
               </Typography>
             </Grid>
             <Grid item xs={12} md={4}>
               <Typography variant="h6" sx={{ fontFamily: 'Fredoka, sans-serif', color: '#2E7D32' }}>
-                Goed: {correctAnswers} | Fout: {wrongAnswers}
+                Goed: {state.correctAnswers} | Fout: {state.wrongAnswers}
               </Typography>
             </Grid>
             <Grid item xs={12} md={4}>
               <Typography variant="h6" sx={{ fontFamily: 'Fredoka, sans-serif', color: '#2E7D32' }}>
-                Score: {Math.round((correctAnswers / (correctAnswers + wrongAnswers)) * 100)}%
+                Score: {Math.round((state.correctAnswers / (state.correctAnswers + state.wrongAnswers || 1)) * 100)}%
               </Typography>
             </Grid>
           </Grid>
@@ -207,6 +268,11 @@ export default function Quiz() {
                     center={GERMANY_CENTER}
                     zoom={5}
                     style={{ height: '100%', width: '100%' }}
+                    zoomControl={false}
+                    dragging={false}
+                    doubleClickZoom={false}
+                    scrollWheelZoom={false}
+                    touchZoom={false}
                   >
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -228,8 +294,8 @@ export default function Quiz() {
                         position={[location.lat, location.lng]}
                         icon={getMarkerIcon(
                           location.type,
-                          answeredLocations.includes(location.name),
-                          currentLocation?.name === location.name
+                          state.answeredLocations.includes(location.name),
+                          state.currentLocation?.name === location.name
                         )}
                       />
                     ))}
@@ -259,39 +325,93 @@ export default function Quiz() {
                 >
                   Welke plaats zie je hier?
                 </Typography>
-                {currentLocation ? (
+                {state.currentLocation ? (
                   <Box sx={{ mt: 3 }}>
-                    {options.map((option, index) => (
-                      <Button
-                        key={index}
-                        variant="contained"
-                        fullWidth
-                        onClick={() => handleAnswer(option)}
-                        disabled={!isAnswering}
-                        sx={{
-                          mb: 2,
-                          py: 2,
-                          borderRadius: '15px',
-                          textTransform: 'none',
+                    {state.questionType === 'multiple-choice' ? (
+                      // Multiple choice opties
+                      state.options.map((option, index) => (
+                        <Button
+                          key={index}
+                          variant="contained"
+                          fullWidth
+                          onClick={() => handleMultipleChoiceAnswer(option)}
+                          disabled={!state.isAnswering}
+                          sx={{
+                            mb: 2,
+                            py: 2,
+                            borderRadius: '15px',
+                            textTransform: 'none',
+                            fontFamily: 'Fredoka, sans-serif',
+                            fontSize: '1.1rem',
+                            backgroundColor: state.feedback === 'correct' && option === state.currentLocation?.name ? '#4CAF50' :
+                                         state.feedback === 'wrong' && option === state.currentLocation?.name ? '#f44336' :
+                                         state.feedback && option === state.currentLocation?.name ? '#4CAF50' : '#2E7D32',
+                            '&:hover': {
+                              backgroundColor: state.feedback === 'correct' && option === state.currentLocation?.name ? '#43A047' :
+                                           state.feedback === 'wrong' && option === state.currentLocation?.name ? '#d32f2f' :
+                                           state.feedback && option === state.currentLocation?.name ? '#43A047' : '#1B5E20',
+                            },
+                          }}
+                        >
+                          {option}
+                        </Button>
+                      ))
+                    ) : (
+                      // Type antwoord interface
+                      <Box>
+                        <TextField
+                          fullWidth
+                          variant="outlined"
+                          value={state.typedAnswer}
+                          onChange={(e) => handleTypedAnswer(e.target.value)}
+                          disabled={!state.isAnswering}
+                          placeholder="Type je antwoord hier..."
+                          sx={{
+                            mb: 2,
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '15px',
+                              fontFamily: 'Fredoka, sans-serif',
+                              backgroundColor: 'white',
+                            },
+                          }}
+                        />
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          onClick={checkTypedAnswer}
+                          disabled={!state.isAnswering || !state.typedAnswer}
+                          sx={{
+                            py: 2,
+                            borderRadius: '15px',
+                            textTransform: 'none',
+                            fontFamily: 'Fredoka, sans-serif',
+                            fontSize: '1.1rem',
+                            backgroundColor: '#2E7D32',
+                            '&:hover': {
+                              backgroundColor: '#1B5E20',
+                            },
+                          }}
+                        >
+                          Controleer
+                        </Button>
+                      </Box>
+                    )}
+                    {state.feedbackMessage && (
+                      <Typography 
+                        sx={{ 
+                          mt: 2, 
+                          textAlign: 'center',
                           fontFamily: 'Fredoka, sans-serif',
-                          fontSize: '1.1rem',
-                          backgroundColor: feedback === 'correct' && option === currentLocation.name ? '#4CAF50' :
-                                       feedback === 'wrong' && option === currentLocation.name ? '#f44336' :
-                                       feedback && option === currentLocation.name ? '#4CAF50' : '#2E7D32',
-                          '&:hover': {
-                            backgroundColor: feedback === 'correct' && option === currentLocation.name ? '#43A047' :
-                                         feedback === 'wrong' && option === currentLocation.name ? '#d32f2f' :
-                                         feedback && option === currentLocation.name ? '#43A047' : '#1B5E20',
-                          },
+                          color: state.feedback === 'correct' ? '#2E7D32' : '#d32f2f',
                         }}
                       >
-                        {option}
-                      </Button>
-                    ))}
+                        {state.feedbackMessage}
+                      </Typography>
+                    )}
                   </Box>
                 ) : (
                   <Typography variant="h5" sx={{ color: '#2E7D32', fontFamily: 'Fredoka, sans-serif' }}>
-                    Quiz afgerond! Je score: {Math.round((correctAnswers / (correctAnswers + wrongAnswers)) * 100)}%
+                    Quiz afgerond! Je score: {Math.round((state.correctAnswers / (state.correctAnswers + state.wrongAnswers || 1)) * 100)}%
                   </Typography>
                 )}
               </CardContent>
