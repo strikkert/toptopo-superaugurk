@@ -144,6 +144,8 @@ export default function Map() {
                       attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
                       maxZoom={17}
                       detectRetina={true}
+                      opacity={1}
+                      className="map-tiles"
                     />
                     {filteredLocations.map((location) => (
                       <Marker
