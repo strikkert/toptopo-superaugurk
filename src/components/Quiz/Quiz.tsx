@@ -154,9 +154,9 @@ export default function Quiz() {
       // 1 letter verschil
       levenshteinDistance(userAnswer, correctAnswer) === 1 ||
       // 1 letter te weinig
-      correctAnswer.includes(userAnswer) && correctAnswer.length - userAnswer.length === 1 ||
+      (correctAnswer.includes(userAnswer) && (correctAnswer.length - userAnswer.length === 1)) ||
       // 1 letter te veel
-      userAnswer.includes(correctAnswer) && userAnswer.length - correctAnswer.length === 1
+      (userAnswer.includes(correctAnswer) && (userAnswer.length - correctAnswer.length === 1))
     );
 
     setState(prev => ({
