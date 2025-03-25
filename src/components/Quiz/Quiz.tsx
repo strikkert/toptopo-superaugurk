@@ -1,142 +1,179 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Button,
   Card,
   CardContent,
   Typography,
-  LinearProgress,
   Container,
   Grid,
+  Button,
+  LinearProgress,
+  Paper,
 } from '@mui/material';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import SuperAugurk from '../Common/SuperAugurk';
 
-interface Question {
-  question: string;
-  options: string[];
-  correctAnswer: number;
-  category: 'city' | 'river' | 'mountain' | 'sea' | 'region';
+interface Location {
+  name: string;
+  type: 'city' | 'river' | 'mountain' | 'sea' | 'region';
+  lat: number;
+  lng: number;
+  description: string;
 }
 
-const questions: Question[] = [
-  {
-    category: 'city',
-    question: 'Wat is de hoofdstad van Duitsland?',
-    options: ['Berlijn', 'München', 'Hamburg', 'Frankfurt'],
-    correctAnswer: 0,
-  },
-  {
-    category: 'river',
-    question: 'Welke rivier stroomt door Keulen?',
-    options: ['Elbe', 'Donau', 'Rijn', 'Main'],
-    correctAnswer: 2,
-  },
-  {
-    category: 'mountain',
-    question: 'Wat is de hoogste berg van Duitsland?',
-    options: ['Brocken', 'Zugspitze', 'Feldberg', 'Watzmann'],
-    correctAnswer: 1,
-  },
-  {
-    category: 'sea',
-    question: 'Welke zee grenst aan het noorden van Duitsland?',
-    options: ['Middellandse Zee', 'Noordzee', 'Oostzee', 'Beide B en C'],
-    correctAnswer: 3,
-  },
-  {
-    category: 'region',
-    question: 'Wat is de grootste deelstaat van Duitsland?',
-    options: ['Beieren', 'Saksen', 'Baden-Württemberg', 'Nedersaksen'],
-    correctAnswer: 0,
-  },
+// Duitse coördinaten
+const GERMANY_CENTER = { lat: 51.1657, lng: 10.4515 };
+
+// Importeer locaties van de Map component
+const locations: Location[] = [
+  // Steden
+  { name: 'Hamburg', type: 'city', lat: 53.5511, lng: 9.9937, description: 'Belangrijke havenstad in het noorden' },
+  { name: 'Bremen', type: 'city', lat: 53.0793, lng: 8.8017, description: 'Historische Hanzestad' },
+  { name: 'Hannover', type: 'city', lat: 52.3759, lng: 9.7320, description: 'Hoofdstad van Nedersaksen' },
+  { name: 'Berlijn', type: 'city', lat: 52.5200, lng: 13.4050, description: 'Hoofdstad van Duitsland' },
+  { name: 'Magdeburg', type: 'city', lat: 52.1205, lng: 11.6276, description: 'Hoofdstad van Saksen-Anhalt' },
+  { name: 'Leipzig', type: 'city', lat: 51.3397, lng: 12.3731, description: 'Culturele stad in Saksen' },
+  { name: 'Dresden', type: 'city', lat: 51.0504, lng: 13.7373, description: 'Hoofdstad van Saksen' },
+  { name: 'Duisburg', type: 'city', lat: 51.4344, lng: 6.7623, description: 'Stad in het Ruhrgebied' },
+  { name: 'Essen', type: 'city', lat: 51.4556, lng: 7.0116, description: 'Belangrijke stad in het Ruhrgebied' },
+  { name: 'Dortmund', type: 'city', lat: 51.5136, lng: 7.4653, description: 'Grootste stad in het Ruhrgebied' },
+  { name: 'Düsseldorf', type: 'city', lat: 51.2277, lng: 6.7735, description: 'Hoofdstad van Noordrijn-Westfalen' },
+  { name: 'Keulen', type: 'city', lat: 50.9375, lng: 6.9603, description: 'Grootste stad aan de Rijn' },
+  { name: 'Bonn', type: 'city', lat: 50.7374, lng: 7.0982, description: 'Voormalige hoofdstad van West-Duitsland' },
+  { name: 'Frankfurt', type: 'city', lat: 50.1109, lng: 8.6821, description: 'Financieel centrum van Duitsland' },
+  { name: 'Neurenberg', type: 'city', lat: 49.4521, lng: 11.0767, description: 'Historische stad in Beieren' },
+  { name: 'München', type: 'city', lat: 48.1351, lng: 11.5820, description: 'Hoofdstad van Beieren' },
+  { name: 'Stuttgart', type: 'city', lat: 48.7758, lng: 9.1829, description: 'Hoofdstad van Baden-Württemberg' },
+  { name: 'Karlsruhe', type: 'city', lat: 49.0069, lng: 8.4037, description: 'Technologiecentrum in Baden-Württemberg' },
 ];
 
-const feedbackMessages = {
-  correct: [
-    "Geweldig gedaan! 🌟",
-    "Wauw, dat is super goed! 🎉",
-    "Ik ben zo trots op je! 🏆",
-    "Dat heb je perfect gedaan! ⭐",
-    "Je bent een echte topograaf! 🗺️"
-  ],
-  incorrect: [
-    "Niet getreurd, probeer het nog een keer! 💪",
-    "Je kunt het! Ga door! ⭐",
-    "Bijna goed! Probeer het nog eens! 🎯",
-    "Niet opgeven! Je komt er wel! 🌈",
-    "Laten we het nog een keer proberen! 🎮"
-  ],
-  thinking: [
-    "Hmm, laten we even nadenken... 🤔",
-    "Denk goed na over je antwoord... 🧠",
-    "Je kunt het! Denk na over wat je weet... 💭",
-    "Neem je tijd om na te denken... ⏳",
-    "Laat je hersenen werken... 🧩"
-  ]
+// Marker iconen voor verschillende types
+const getMarkerIcon = (type: Location['type'], isSelected: boolean, isCurrent: boolean) => {
+  const color = isCurrent ? '#FF9800' : '#CCCCCC';
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="
+      width: 24px;
+      height: 24px;
+      background-color: ${color};
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    "></div>`,
+    iconSize: [24, 24],
+  });
 };
 
 export default function Quiz() {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<Question['category'] | 'all'>('all');
-  const [feedbackMessage, setFeedbackMessage] = useState<string>('');
+  const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
+  const [options, setOptions] = useState<string[]>([]);
+  const [answeredLocations, setAnsweredLocations] = useState<string[]>([]);
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [wrongAnswers, setWrongAnswers] = useState(0);
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const [isAnswering, setIsAnswering] = useState(false);
 
-  const currentQuestion = questions[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  // Initialiseer de quiz
+  useEffect(() => {
+    selectNextLocation();
+  }, []);
 
-  const getRandomMessage = (type: 'correct' | 'incorrect' | 'thinking') => {
-    const messages = feedbackMessages[type];
-    return messages[Math.floor(Math.random() * messages.length)];
+  const selectNextLocation = () => {
+    const remainingLocations = locations.filter(loc => !answeredLocations.includes(loc.name));
+    if (remainingLocations.length === 0) {
+      // Quiz is afgelopen
+      return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * remainingLocations.length);
+    const selected = remainingLocations[randomIndex];
+    
+    // Genereer opties
+    const otherLocations = locations.filter(loc => loc.name !== selected.name);
+    const shuffledOthers = [...otherLocations].sort(() => Math.random() - 0.5).slice(0, 3);
+    const allOptions = [selected.name, ...shuffledOthers.map(loc => loc.name)];
+    
+    setCurrentLocation(selected);
+    setOptions(allOptions.sort(() => Math.random() - 0.5));
+    setFeedback(null);
+    setIsAnswering(true);
   };
 
   const handleAnswer = (answer: string) => {
-    setSelectedAnswer(answer);
-    const correct = answer === questions[currentQuestionIndex].correctAnswer.toString();
-    setIsCorrect(correct);
-    setFeedbackMessage(getRandomMessage(correct ? 'correct' : 'incorrect'));
+    if (!isAnswering || !currentLocation) return;
     
-    if (correct) {
-      setScore(score + 1);
+    setIsAnswering(false);
+    const isCorrect = answer === currentLocation.name;
+    
+    if (isCorrect) {
+      setCorrectAnswers(prev => prev + 1);
+      setFeedback('correct');
+    } else {
+      setWrongAnswers(prev => prev + 1);
+      setFeedback('wrong');
     }
     
-    setTimeout(() => {
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        setSelectedAnswer(null);
-        setIsCorrect(null);
-        setFeedbackMessage('');
-      } else {
-        setShowResult(true);
-      }
-    }, 1500);
+    setAnsweredLocations(prev => [...prev, currentLocation.name]);
+    
+    // Wacht 2 seconden voordat we naar de volgende vraag gaan
+    setTimeout(selectNextLocation, 2000);
   };
 
-  const resetQuiz = () => {
-    setCurrentQuestionIndex(0);
-    setScore(0);
-    setShowResult(false);
-    setSelectedAnswer(null);
-    setIsCorrect(null);
-    setFeedbackMessage('');
-  };
-
-  const filteredQuestions = selectedCategory === 'all'
-    ? questions
-    : questions.filter(q => q.category === selectedCategory);
+  const progress = (answeredLocations.length / locations.length) * 100;
 
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="lg">
       <Box sx={{ mt: 4, position: 'relative' }}>
         <Box sx={{ position: 'absolute', right: -20, top: -60, zIndex: 1 }}>
           <SuperAugurk 
-            emotion={isCorrect === null ? 'thinking' : isCorrect ? 'excited' : 'sad'} 
-            size={120}
-            message={feedbackMessage}
+            emotion={feedback === 'correct' ? 'happy' : feedback === 'wrong' ? 'sad' : 'thinking'} 
+            size={120} 
           />
         </Box>
+
+        {/* Statusbalk */}
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 2, 
+            mb: 4, 
+            background: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+            borderRadius: '15px',
+          }}
+        >
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={4}>
+              <Typography variant="h6" sx={{ fontFamily: 'Fredoka, sans-serif', color: '#2E7D32' }}>
+                Voortgang: {answeredLocations.length} van {locations.length}
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Typography variant="h6" sx={{ fontFamily: 'Fredoka, sans-serif', color: '#2E7D32' }}>
+                Goed: {correctAnswers} | Fout: {wrongAnswers}
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Typography variant="h6" sx={{ fontFamily: 'Fredoka, sans-serif', color: '#2E7D32' }}>
+                Score: {Math.round((correctAnswers / (correctAnswers + wrongAnswers)) * 100)}%
+              </Typography>
+            </Grid>
+          </Grid>
+          <LinearProgress 
+            variant="determinate" 
+            value={progress} 
+            sx={{ 
+              mt: 2, 
+              height: 10, 
+              borderRadius: 5,
+              backgroundColor: '#E8F5E9',
+              '& .MuiLinearProgress-bar': {
+                backgroundColor: '#2E7D32',
+              }
+            }} 
+          />
+        </Paper>
 
         <Typography 
           variant="h4" 
@@ -151,66 +188,58 @@ export default function Quiz() {
             mb: 4,
           }}
         >
-          Duitse Topografie Quiz!
+          Topografie Quiz
         </Typography>
 
-        {!showResult ? (
-          <>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Filter op categorie:
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                <Button
-                  variant={selectedCategory === 'all' ? 'contained' : 'outlined'}
-                  size="small"
-                  onClick={() => setSelectedCategory('all')}
-                >
-                  Alle
-                </Button>
-                <Button
-                  variant={selectedCategory === 'city' ? 'contained' : 'outlined'}
-                  size="small"
-                  onClick={() => setSelectedCategory('city')}
-                >
-                  Steden
-                </Button>
-                <Button
-                  variant={selectedCategory === 'river' ? 'contained' : 'outlined'}
-                  size="small"
-                  onClick={() => setSelectedCategory('river')}
-                >
-                  Rivieren
-                </Button>
-                <Button
-                  variant={selectedCategory === 'mountain' ? 'contained' : 'outlined'}
-                  size="small"
-                  onClick={() => setSelectedCategory('mountain')}
-                >
-                  Bergen
-                </Button>
-                <Button
-                  variant={selectedCategory === 'sea' ? 'contained' : 'outlined'}
-                  size="small"
-                  onClick={() => setSelectedCategory('sea')}
-                >
-                  Zeeën
-                </Button>
-                <Button
-                  variant={selectedCategory === 'region' ? 'contained' : 'outlined'}
-                  size="small"
-                  onClick={() => setSelectedCategory('region')}
-                >
-                  Regio's
-                </Button>
-              </Box>
-            </Box>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={8}>
+            <Card
+              sx={{
+                borderRadius: '20px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+                overflow: 'hidden',
+                border: '4px solid #A5D6A7',
+              }}
+            >
+              <CardContent sx={{ p: 2 }}>
+                <Box sx={{ height: '60vh', position: 'relative', borderRadius: '16px', overflow: 'hidden' }}>
+                  <MapContainer
+                    center={GERMANY_CENTER}
+                    zoom={5}
+                    style={{ height: '100%', width: '100%' }}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      detectRetina={true}
+                      maxZoom={19}
+                      minZoom={3}
+                      noWrap={true}
+                      updateWhenIdle={true}
+                      updateWhenZooming={false}
+                      updateInterval={150}
+                      zIndex={1}
+                      opacity={0.8}
+                      className="map-tiles"
+                    />
+                    {locations.map((location) => (
+                      <Marker
+                        key={`${location.name}-${location.type}`}
+                        position={[location.lat, location.lng]}
+                        icon={getMarkerIcon(
+                          location.type,
+                          answeredLocations.includes(location.name),
+                          currentLocation?.name === location.name
+                        )}
+                      />
+                    ))}
+                  </MapContainer>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
 
-            <LinearProgress
-              variant="determinate"
-              value={progress}
-              sx={{ mb: 4, height: 10, borderRadius: 5 }}
-            />
+          <Grid item xs={12} md={4}>
             <Card
               sx={{
                 borderRadius: '20px',
@@ -220,124 +249,55 @@ export default function Quiz() {
               }}
             >
               <CardContent>
-                <Box sx={{ mb: 3 }}>
-                  <Typography 
-                    variant="body2" 
-                    align="right" 
-                    sx={{ mt: 1, color: '#2E7D32' }}
-                  >
-                    Vraag {currentQuestionIndex + 1} van {filteredQuestions.length}
-                  </Typography>
-                </Box>
-
                 <Typography 
-                  variant="h5" 
+                  variant="h6" 
                   gutterBottom
                   sx={{
                     fontFamily: 'Fredoka, sans-serif',
-                    color: '#1B5E20',
-                    mb: 3,
+                    color: '#2E7D32',
                   }}
                 >
-                  {currentQuestion.question}
+                  Welke plaats zie je hier?
                 </Typography>
-
-                <Grid container spacing={2}>
-                  {filteredQuestions[currentQuestionIndex].options.map((option, index) => (
-                    <Grid item xs={12} sm={6} key={option}>
+                {currentLocation ? (
+                  <Box sx={{ mt: 3 }}>
+                    {options.map((option, index) => (
                       <Button
-                        fullWidth
+                        key={index}
                         variant="contained"
+                        fullWidth
                         onClick={() => handleAnswer(option)}
-                        disabled={selectedAnswer !== null}
+                        disabled={!isAnswering}
                         sx={{
+                          mb: 2,
+                          py: 2,
                           borderRadius: '15px',
-                          p: 2,
                           textTransform: 'none',
                           fontFamily: 'Fredoka, sans-serif',
                           fontSize: '1.1rem',
-                          backgroundColor: selectedAnswer === option
-                            ? (isCorrect ? '#4CAF50' : '#F44336')
-                            : '#FFFFFF',
-                          color: selectedAnswer === option
-                            ? '#FFFFFF'
-                            : '#2E7D32',
-                          border: '3px solid #A5D6A7',
+                          backgroundColor: feedback === 'correct' && option === currentLocation.name ? '#4CAF50' :
+                                       feedback === 'wrong' && option === currentLocation.name ? '#f44336' :
+                                       feedback && option === currentLocation.name ? '#4CAF50' : '#2E7D32',
                           '&:hover': {
-                            backgroundColor: '#E8F5E9',
-                            border: '3px solid #4CAF50',
-                          },
-                          '&.Mui-disabled': {
-                            backgroundColor: selectedAnswer === option
-                              ? (isCorrect ? '#4CAF50' : '#F44336')
-                              : '#F5F5F5',
-                            color: selectedAnswer === option
-                              ? '#FFFFFF'
-                              : '#9E9E9E',
+                            backgroundColor: feedback === 'correct' && option === currentLocation.name ? '#43A047' :
+                                         feedback === 'wrong' && option === currentLocation.name ? '#d32f2f' :
+                                         feedback && option === currentLocation.name ? '#43A047' : '#1B5E20',
                           },
                         }}
                       >
                         {option}
                       </Button>
-                    </Grid>
-                  ))}
-                </Grid>
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography variant="h5" sx={{ color: '#2E7D32', fontFamily: 'Fredoka, sans-serif' }}>
+                    Quiz afgerond! Je score: {Math.round((correctAnswers / (correctAnswers + wrongAnswers)) * 100)}%
+                  </Typography>
+                )}
               </CardContent>
             </Card>
-          </>
-        ) : (
-          <Card
-            sx={{
-              borderRadius: '20px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-              background: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
-              border: '4px solid #A5D6A7',
-              p: 4,
-            }}
-          >
-            <Typography 
-              variant="h4" 
-              align="center" 
-              gutterBottom
-              sx={{
-                fontFamily: 'Fredoka, sans-serif',
-                color: '#1B5E20',
-              }}
-            >
-              Quiz afgerond! 🎉
-            </Typography>
-            <Typography 
-              variant="h5" 
-              align="center" 
-              sx={{
-                fontFamily: 'Fredoka, sans-serif',
-                color: '#2E7D32',
-                mb: 4,
-              }}
-            >
-              Je score: {score} van {questions.length} ({Math.round((score / questions.length) * 100)}%)
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-              <Button
-                variant="contained"
-                onClick={resetQuiz}
-                sx={{
-                  borderRadius: '15px',
-                  p: 2,
-                  textTransform: 'none',
-                  fontFamily: 'Fredoka, sans-serif',
-                  fontSize: '1.1rem',
-                  backgroundColor: '#4CAF50',
-                  '&:hover': {
-                    backgroundColor: '#388E3C',
-                  },
-                }}
-              >
-                Opnieuw spelen
-              </Button>
-            </Box>
-          </Card>
-        )}
+          </Grid>
+        </Grid>
       </Box>
     </Container>
   );
