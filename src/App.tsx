@@ -12,6 +12,7 @@ import Map from './components/Map/Map';
 import Rewards from './components/Common/Rewards';
 import Settings from './components/Common/Settings';
 import TestPlanner from './components/Common/TestPlanner';
+import Ezelsbruggetjes from './components/Common/Ezelsbruggetjes';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/rewards" element={<Rewards />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/test-planner" element={<TestPlanner />} />
+            <Route path="/ezelsbruggetjes" element={<Ezelsbruggetjes />} />
           </Routes>
         </Layout>
       </Router>

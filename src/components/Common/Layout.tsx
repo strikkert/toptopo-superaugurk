@@ -23,6 +23,8 @@ import MapIcon from '@mui/icons-material/Map';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import SettingsIcon from '@mui/icons-material/Settings';
 import EventNoteIcon from '@mui/icons-material/EventNote';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
+import EventIcon from '@mui/icons-material/Event';
 
 const drawerWidth = 240;
 
@@ -34,8 +36,9 @@ const menuItems = [
   { text: 'Home', path: '/', icon: <HomeIcon /> },
   { text: 'Quiz', path: '/quiz', icon: <QuizIcon /> },
   { text: 'Kaart', path: '/map', icon: <MapIcon /> },
+  { text: 'Ezelsbruggetjes', path: '/ezelsbruggetjes', icon: <AutoStoriesIcon /> },
   { text: 'Beloningen', path: '/rewards', icon: <EmojiEventsIcon /> },
-  { text: 'Toets Planner', path: '/test-planner', icon: <EventNoteIcon /> },
+  { text: 'Test Planner', path: '/test-planner', icon: <EventIcon /> },
   { text: 'Instellingen', path: '/settings', icon: <SettingsIcon /> },
 ];
 
