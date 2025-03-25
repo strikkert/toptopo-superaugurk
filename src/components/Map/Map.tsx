@@ -139,12 +139,22 @@ export default function Map() {
                 <Box sx={{ height: '60vh', position: 'relative', borderRadius: '16px', overflow: 'hidden' }}>
                   <MapContainer
                     center={GERMANY_CENTER}
-                    zoom={6}
+                    zoom={5}
                     style={{ height: '100%', width: '100%' }}
                   >
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      detectRetina={true}
+                      maxZoom={19}
+                      minZoom={3}
+                      noWrap={true}
+                      updateWhenIdle={true}
+                      updateWhenZooming={false}
+                      updateInterval={150}
+                      zIndex={1}
+                      opacity={0.8}
+                      className="map-tiles"
                     />
                     {filteredLocations.map((location) => (
                       <Marker

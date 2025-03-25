@@ -71,3 +71,21 @@ code {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary-color);
 }
+
+/* Kaart styling */
+.map-tiles {
+  filter: grayscale(100%) brightness(1.1);
+}
+
+.map-tiles .leaflet-tile-pane {
+  filter: grayscale(100%) brightness(1.1);
+}
+
+.map-tiles .leaflet-tile {
+  filter: grayscale(100%) brightness(1.1);
+}
+
+/* Verberg labels op de kaart */
+.map-tiles .leaflet-tile-pane .leaflet-tile {
+  filter: grayscale(100%) brightness(1.1) contrast(1.2);
+}
