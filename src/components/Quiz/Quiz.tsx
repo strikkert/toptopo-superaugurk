@@ -129,10 +129,6 @@ export default function Quiz() {
     selectNextLocation();
   }, [selectNextLocation]);
 
-  const normalizeString = (str: string): string => {
-    return str.toLowerCase().trim();
-  };
-
   const handleTypedAnswer = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState(prev => ({ ...prev, typedAnswer: e.target.value }));
   };
@@ -161,20 +157,19 @@ export default function Quiz() {
   };
 
   const handleMultipleChoiceAnswer = (answer: string) => {
-    if (!state.isAnswering || !state.currentLocation) return;
-    
+    if (!state.currentLocation || !state.isAnswering) return;
+
     const isCorrect = answer === state.currentLocation.name;
-    
     setState(prev => ({
       ...prev,
       isAnswering: false,
       feedback: isCorrect ? 'correct' : 'wrong',
       feedbackMessage: isCorrect ? 'Goed gedaan!' : `Niet juist. Het juiste antwoord is: ${state.currentLocation!.name}`,
       correctAnswers: isCorrect ? prev.correctAnswers + 1 : prev.correctAnswers,
-      wrongAnswers: !isCorrect ? prev.wrongAnswers + 1 : prev.wrongAnswers,
+      wrongAnswers: isCorrect ? prev.wrongAnswers : prev.wrongAnswers + 1,
       answeredLocations: [...prev.answeredLocations, state.currentLocation!.name],
     }));
-    
+
     setTimeout(selectNextLocation, 2000);
   };
 

@@ -21,9 +21,6 @@ interface Location {
   description: string;
 }
 
-// Duitse coördinaten
-const GERMANY_CENTER = { lat: 51.1657, lng: 10.4515 };
-
 const locations: Location[] = [
   // Steden
   { name: 'Hamburg', type: 'city', lat: 53.5511, lng: 9.9937, description: 'Belangrijke havenstad in het noorden' },
