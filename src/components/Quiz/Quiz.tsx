@@ -126,8 +126,11 @@ export default function Quiz() {
   }, [state.answeredLocations]);
 
   useEffect(() => {
-    selectNextLocation();
-  }, [selectNextLocation]);
+    // Alleen selectNextLocation aanroepen als er nog geen locatie is
+    if (!state.currentLocation) {
+      selectNextLocation();
+    }
+  }, [selectNextLocation, state.currentLocation]);
 
   const handleTypedAnswer = (e: React.ChangeEvent<HTMLInputElement>) => {
     setState(prev => ({ ...prev, typedAnswer: e.target.value }));
@@ -147,7 +150,7 @@ export default function Quiz() {
       ...prev,
       isAnswering: false,
       feedback: isCorrect ? 'correct' : 'wrong',
-      feedbackMessage: isCorrect ? 'Goed gedaan!' : `Niet juist. Het juiste antwoord is: ${state.currentLocation!.name}`,
+      feedbackMessage: isCorrect ? '✓ Goed gedaan!' : `✗ Niet juist. Het juiste antwoord is: ${state.currentLocation!.name}`,
       correctAnswers: isCorrect ? prev.correctAnswers + 1 : prev.correctAnswers,
       wrongAnswers: isCorrect ? prev.wrongAnswers : prev.wrongAnswers + 1,
       answeredLocations: [...prev.answeredLocations, state.currentLocation!.name],
@@ -164,7 +167,7 @@ export default function Quiz() {
       ...prev,
       isAnswering: false,
       feedback: isCorrect ? 'correct' : 'wrong',
-      feedbackMessage: isCorrect ? 'Goed gedaan!' : `Niet juist. Het juiste antwoord is: ${state.currentLocation!.name}`,
+      feedbackMessage: isCorrect ? '✓ Goed gedaan!' : `✗ Niet juist. Het juiste antwoord is: ${state.currentLocation!.name}`,
       correctAnswers: isCorrect ? prev.correctAnswers + 1 : prev.correctAnswers,
       wrongAnswers: isCorrect ? prev.wrongAnswers : prev.wrongAnswers + 1,
       answeredLocations: [...prev.answeredLocations, state.currentLocation!.name],
@@ -420,16 +423,25 @@ export default function Quiz() {
                       </Box>
                     )}
                     {state.feedbackMessage && (
-                      <Typography 
-                        sx={{ 
-                          mt: 2, 
-                          textAlign: 'center',
-                          fontFamily: 'Fredoka, sans-serif',
-                          color: state.feedback === 'correct' ? 'var(--duolingo-green)' : 'var(--duolingo-red)',
-                        }}
-                      >
-                        {state.feedbackMessage}
-                      </Typography>
+                      <Box sx={{ 
+                        mt: 2, 
+                        p: 2,
+                        borderRadius: '12px',
+                        backgroundColor: state.feedback === 'correct' ? '#E8F5E9' : '#FFEBEE',
+                        border: `2px solid ${state.feedback === 'correct' ? 'var(--duolingo-green)' : 'var(--duolingo-red)'}`,
+                      }}>
+                        <Typography 
+                          sx={{ 
+                            textAlign: 'center',
+                            fontFamily: 'Fredoka, sans-serif',
+                            color: state.feedback === 'correct' ? 'var(--duolingo-green)' : 'var(--duolingo-red)',
+                            fontSize: '1.2rem',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {state.feedbackMessage}
+                        </Typography>
+                      </Box>
                     )}
                   </Box>
                 ) : (
