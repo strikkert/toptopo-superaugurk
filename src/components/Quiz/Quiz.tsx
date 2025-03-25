@@ -101,6 +101,10 @@ const initialState: QuizState = {
 
 export default function Quiz() {
   const [state, setState] = useState<QuizState>(initialState);
+  const [showResults, setShowResults] = useState(false);
+  const [score, setScore] = useState(0);
+  const [superAugurkMessage, setSuperAugurkMessage] = useState('');
+  const [superAugurkIsHappy, setSuperAugurkIsHappy] = useState(true);
 
   const selectNextLocation = React.useCallback(() => {
     const remainingLocations = locations.filter(loc => !state.answeredLocations.includes(loc.name));
@@ -276,47 +280,231 @@ export default function Quiz() {
     markersRef.current = newMarkers;
   };
 
-  const handleAnswer = (option?: string) => {
-    if (!state.currentLocation) return;
-    
-    const currentLocationName = state.currentLocation.name;
-    const isCorrect = option 
-      ? option.toLowerCase() === currentLocationName.toLowerCase()
-      : state.typedAnswer.toLowerCase() === currentLocationName.toLowerCase();
-      
-    const feedbackMessage = isCorrect 
-      ? `Goed gedaan! ${currentLocationName} is inderdaad correct!`
-      : `Helaas, dat is niet correct. Het juiste antwoord is ${currentLocationName}.`;
-
+  const handleAnswer = (answer: string) => {
+    const isCorrect = answer.toLowerCase() === state.currentLocation?.name.toLowerCase();
     setState(prev => ({
       ...prev,
       feedback: isCorrect ? 'correct' : 'wrong',
-      feedbackMessage,
-      message: feedbackMessage,
+      feedbackMessage: isCorrect ? '✓ Goed gedaan!' : `✗ Niet juist. Het juiste antwoord is: ${state.currentLocation?.name}`,
+      message: isCorrect ? 'Goed gedaan! Je hebt het juiste antwoord gegeven.' : `Helaas, het juiste antwoord is: ${state.currentLocation?.name}`,
       isHappy: isCorrect,
-      answeredLocations: [...prev.answeredLocations, currentLocationName],
+      answeredLocations: [...prev.answeredLocations, state.currentLocation?.name || ''],
       currentLocation: locations.find(loc => !prev.answeredLocations.includes(loc.name) && loc !== state.currentLocation) || locations[0],
       typedAnswer: '',
       correctAnswers: isCorrect ? prev.correctAnswers + 1 : prev.correctAnswers,
-      wrongAnswers: !isCorrect ? prev.wrongAnswers + 1 : prev.wrongAnswers
+      wrongAnswers: isCorrect ? prev.wrongAnswers : prev.wrongAnswers + 1,
     }));
+
+    if (isCorrect) {
+      setScore(prev => prev + 1);
+      setSuperAugurkMessage('Super goed gedaan! 🎉');
+      setSuperAugurkIsHappy(true);
+    } else {
+      setSuperAugurkMessage('Niet getreurd, volgende keer beter! 💪');
+      setSuperAugurkIsHappy(false);
+    }
+
+    setTimeout(selectNextLocation, 2000);
   };
 
-  const handleSkip = () => {
-    if (!state.currentLocation) return;
-    
-    const currentLocationName = state.currentLocation.name;
-    setState(prev => ({
-      ...prev,
-      feedback: 'wrong',
-      feedbackMessage: `Het juiste antwoord was ${currentLocationName}.`,
-      message: `Het juiste antwoord was ${currentLocationName}.`,
-      isHappy: false,
-      answeredLocations: [...prev.answeredLocations, currentLocationName],
-      currentLocation: locations.find(loc => !prev.answeredLocations.includes(loc.name) && loc !== state.currentLocation) || locations[0],
-      typedAnswer: '',
-      wrongAnswers: prev.wrongAnswers + 1
-    }));
+  const handleNext = () => {
+    if (state.answeredLocations.length < locations.length) {
+      selectNextLocation();
+    } else {
+      setShowResults(true);
+    }
+  };
+
+  const handleRestart = () => {
+    setState(initialState);
+    setScore(0);
+    setShowResults(false);
+    setSuperAugurkMessage('Hoi! Ik ben SuperAugurk en ik help je graag met het leren van topografie!');
+    setSuperAugurkIsHappy(true);
+  };
+
+  const renderQuestion = () => {
+    if (!state.currentLocation) return null;
+
+    return (
+      <Box sx={{ textAlign: 'center' }}>
+        <Typography 
+          variant="h5" 
+          gutterBottom 
+          sx={{ 
+            fontFamily: 'Fredoka, sans-serif',
+            color: '#2E7D32',
+            mb: 3,
+          }}
+        >
+          Welke plaats zie je hier?
+        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'center' }}>
+          {state.questionType === 'multiple-choice' ? (
+            state.options.map((option, index) => (
+              <Button
+                key={index}
+                variant="contained"
+                onClick={() => handleAnswer(option)}
+                sx={{
+                  width: '80%',
+                  maxWidth: '400px',
+                  borderRadius: '15px',
+                  textTransform: 'none',
+                  fontFamily: 'Fredoka, sans-serif',
+                  fontSize: '1.1rem',
+                  backgroundColor: '#4CAF50',
+                  color: '#FFFFFF',
+                  '&:hover': {
+                    backgroundColor: '#43A047',
+                  },
+                }}
+              >
+                {option}
+              </Button>
+            ))
+          ) : (
+            <Box>
+              <TextField
+                fullWidth
+                variant="outlined"
+                value={state.typedAnswer}
+                onChange={handleTypedAnswer}
+                onKeyPress={handleKeyPress}
+                placeholder="Type je antwoord hier..."
+                disabled={!state.isAnswering}
+                InputProps={{
+                  endAdornment: state.feedback && (
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center',
+                      color: state.feedback === 'correct' ? 'var(--duolingo-green)' : 
+                            state.feedback === 'warning' ? '#FF9800' : 'var(--duolingo-red)',
+                      mr: 1
+                    }}>
+                      {state.feedback === 'correct' ? '✓' : state.feedback === 'warning' ? '⚠️' : '✗'}
+                    </Box>
+                  ),
+                }}
+                sx={{
+                  mb: 2,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    backgroundColor: state.feedback === 'correct' ? '#E8F5E9' :
+                                 state.feedback === 'warning' ? '#FFF3E0' :
+                                 state.feedback === 'wrong' ? '#FFEBEE' : 'white',
+                    '& fieldset': {
+                      borderColor: state.feedback === 'correct' ? 'var(--duolingo-green)' :
+                                 state.feedback === 'warning' ? '#FF9800' :
+                                 state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-gray)',
+                      borderWidth: state.feedback ? '2px' : '1px',
+                    },
+                    '&:hover fieldset': {
+                      borderColor: state.feedback === 'correct' ? 'var(--duolingo-green)' :
+                                 state.feedback === 'warning' ? '#FF9800' :
+                                 state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-blue)',
+                    },
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontFamily: 'Fredoka, sans-serif',
+                    color: state.feedback === 'correct' ? 'var(--duolingo-green)' :
+                               state.feedback === 'warning' ? '#FF9800' :
+                               state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-gray)',
+                  },
+                }}
+              />
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={checkTypedAnswer}
+                disabled={!state.isAnswering || !state.typedAnswer}
+                sx={{
+                  py: 2,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontFamily: 'Fredoka, sans-serif',
+                  fontSize: '1.1rem',
+                  backgroundColor: state.feedback === 'correct' ? 'var(--duolingo-green)' :
+                               state.feedback === 'warning' ? 'var(--duolingo-yellow)' :
+                               state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-blue)',
+                  '&:hover': {
+                    backgroundColor: state.feedback === 'correct' ? '#4CAF50' :
+                                 state.feedback === 'warning' ? '#FF9800' :
+                                 state.feedback === 'wrong' ? '#d32f2f' : '#1B5E20',
+                  },
+                }}
+              >
+                {state.feedback === 'correct' ? 'Goed!' :
+                 state.feedback === 'warning' ? 'Bijna goed!' :
+                 state.feedback === 'wrong' ? 'Fout!' : 'Controleer'}
+              </Button>
+            </Box>
+          )}
+        </Box>
+      </Box>
+    );
+  };
+
+  const renderResults = () => {
+    const percentage = (score / locations.length) * 100;
+    const isGoodScore = percentage >= 70;
+
+    return (
+      <Box sx={{ textAlign: 'center' }}>
+        <Typography 
+          variant="h4" 
+          gutterBottom 
+          sx={{ 
+            fontFamily: 'Fredoka, sans-serif',
+            color: '#2E7D32',
+            mb: 3,
+          }}
+        >
+          Quiz Afgerond!
+        </Typography>
+        <Typography 
+          variant="h5" 
+          gutterBottom 
+          sx={{ 
+            fontFamily: 'Fredoka, sans-serif',
+            color: isGoodScore ? '#4CAF50' : '#F44336',
+            mb: 2,
+          }}
+        >
+          Je score: {score} van de {locations.length} ({percentage}%)
+        </Typography>
+        <Typography 
+          variant="h6" 
+          gutterBottom 
+          sx={{ 
+            fontFamily: 'Fredoka, sans-serif',
+            color: '#2E7D32',
+            mb: 4,
+          }}
+        >
+          {isGoodScore 
+            ? 'Gefeliciteerd! Je kent je topografie heel goed! 🎉' 
+            : 'Niet getreurd! Oefening baart kunst! 💪'}
+        </Typography>
+        <Button
+          variant="contained"
+          onClick={handleRestart}
+          sx={{
+            borderRadius: '15px',
+            textTransform: 'none',
+            fontFamily: 'Fredoka, sans-serif',
+            fontSize: '1.1rem',
+            backgroundColor: '#4CAF50',
+            color: '#FFFFFF',
+            '&:hover': {
+              backgroundColor: '#43A047',
+            },
+          }}
+        >
+          Opnieuw Proberen
+        </Button>
+      </Box>
+    );
   };
 
   return (
@@ -324,8 +512,8 @@ export default function Quiz() {
       <Box sx={{ mt: 4, position: 'relative' }}>
         <Box sx={{ position: 'absolute', right: -20, top: -60, zIndex: 1 }}>
           <SuperAugurk 
-            message="Hoi! Ik ben SuperAugurk en ik help je graag met het leren van topografie!"
-            isHappy={true}
+            message={superAugurkMessage}
+            isHappy={superAugurkIsHappy}
           />
         </Box>
 
@@ -452,139 +640,7 @@ export default function Quiz() {
               }}
             >
               <CardContent>
-                <Typography 
-                  variant="h6" 
-                  gutterBottom
-                  sx={{
-                    fontFamily: 'Fredoka, sans-serif',
-                    color: 'var(--duolingo-gray)',
-                  }}
-                >
-                  Welke plaats zie je hier?
-                </Typography>
-                {state.currentLocation ? (
-                  <Box sx={{ mt: 3 }}>
-                    {state.questionType === 'multiple-choice' ? (
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-                        {state.options.map((option: string, index: number) => (
-                          <Button
-                            key={index}
-                            variant="outlined"
-                            onClick={() => handleAnswer(option)}
-                            disabled={state.isAnswering}
-                          >
-                            {option}
-                          </Button>
-                        ))}
-                      </Box>
-                    ) : (
-                      // Type antwoord interface
-                      <Box>
-                        <TextField
-                          fullWidth
-                          variant="outlined"
-                          value={state.typedAnswer}
-                          onChange={handleTypedAnswer}
-                          onKeyPress={handleKeyPress}
-                          placeholder="Type je antwoord hier..."
-                          disabled={!state.isAnswering}
-                          InputProps={{
-                            endAdornment: state.feedback && (
-                              <Box sx={{ 
-                                display: 'flex', 
-                                alignItems: 'center',
-                                color: state.feedback === 'correct' ? 'var(--duolingo-green)' : 
-                                      state.feedback === 'warning' ? '#FF9800' : 'var(--duolingo-red)',
-                                mr: 1
-                              }}>
-                                {state.feedback === 'correct' ? '✓' : state.feedback === 'warning' ? '⚠️' : '✗'}
-                              </Box>
-                            ),
-                          }}
-                          sx={{
-                            mb: 2,
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: '12px',
-                              backgroundColor: state.feedback === 'correct' ? '#E8F5E9' :
-                                           state.feedback === 'warning' ? '#FFF3E0' :
-                                           state.feedback === 'wrong' ? '#FFEBEE' : 'white',
-                              '& fieldset': {
-                                borderColor: state.feedback === 'correct' ? 'var(--duolingo-green)' :
-                                           state.feedback === 'warning' ? '#FF9800' :
-                                           state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-gray)',
-                                borderWidth: state.feedback ? '2px' : '1px',
-                              },
-                              '&:hover fieldset': {
-                                borderColor: state.feedback === 'correct' ? 'var(--duolingo-green)' :
-                                           state.feedback === 'warning' ? '#FF9800' :
-                                           state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-blue)',
-                              },
-                            },
-                            '& .MuiInputLabel-root': {
-                              fontFamily: 'Fredoka, sans-serif',
-                              color: state.feedback === 'correct' ? 'var(--duolingo-green)' :
-                                     state.feedback === 'warning' ? '#FF9800' :
-                                     state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-gray)',
-                            },
-                          }}
-                        />
-                        <Button
-                          variant="contained"
-                          fullWidth
-                          onClick={checkTypedAnswer}
-                          disabled={!state.isAnswering || !state.typedAnswer}
-                          sx={{
-                            py: 2,
-                            borderRadius: '12px',
-                            textTransform: 'none',
-                            fontFamily: 'Fredoka, sans-serif',
-                            fontSize: '1.1rem',
-                            backgroundColor: state.feedback === 'correct' ? 'var(--duolingo-green)' :
-                                         state.feedback === 'warning' ? 'var(--duolingo-yellow)' :
-                                         state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-blue)',
-                            '&:hover': {
-                              backgroundColor: state.feedback === 'correct' ? '#4CAF50' :
-                                           state.feedback === 'warning' ? '#FF9800' :
-                                           state.feedback === 'wrong' ? '#d32f2f' : '#1B5E20',
-                            },
-                          }}
-                        >
-                          {state.feedback === 'correct' ? 'Goed!' :
-                           state.feedback === 'warning' ? 'Bijna goed!' :
-                           state.feedback === 'wrong' ? 'Fout!' : 'Controleer'}
-                        </Button>
-                      </Box>
-                    )}
-                    {state.feedbackMessage && (
-                      <Box sx={{ 
-                        mt: 2, 
-                        p: 2,
-                        borderRadius: '12px',
-                        backgroundColor: state.feedback === 'correct' ? '#E8F5E9' : 
-                                      state.feedback === 'warning' ? '#FFF3E0' : '#FFEBEE',
-                        border: `2px solid ${state.feedback === 'correct' ? 'var(--duolingo-green)' : 
-                                         state.feedback === 'warning' ? '#FF9800' : 'var(--duolingo-red)'}`,
-                      }}>
-                        <Typography 
-                          sx={{ 
-                            textAlign: 'center',
-                            fontFamily: 'Fredoka, sans-serif',
-                            color: state.feedback === 'correct' ? 'var(--duolingo-green)' : 
-                                  state.feedback === 'warning' ? '#FF9800' : 'var(--duolingo-red)',
-                            fontSize: '1.2rem',
-                            fontWeight: 600,
-                          }}
-                        >
-                          {state.feedbackMessage}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                ) : (
-                  <Typography variant="h5" sx={{ color: 'var(--duolingo-gray)', fontFamily: 'Fredoka, sans-serif' }}>
-                    Quiz afgerond! Je score: {Math.round((state.correctAnswers / (state.correctAnswers + state.wrongAnswers || 1)) * 100)}%
-                  </Typography>
-                )}
+                {showResults ? renderResults() : renderQuestion()}
               </CardContent>
             </Card>
           </Grid>
