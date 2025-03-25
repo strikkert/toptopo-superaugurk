@@ -42,7 +42,10 @@ export default function TestPlanner() {
     <Container maxWidth="md">
       <Box sx={{ mt: 4, position: 'relative' }}>
         <Box sx={{ position: 'absolute', right: -20, top: -60, zIndex: 1 }}>
-          <SuperAugurk emotion="thinking" size={120} />
+          <SuperAugurk 
+            message="Ik help je graag met het plannen van je toets!"
+            isHappy={true}
+          />
         </Box>
 
         <Typography 

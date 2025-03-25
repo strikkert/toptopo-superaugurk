@@ -79,7 +79,10 @@ export default function Ezelsbruggetjes() {
     <Container maxWidth="lg">
       <Box sx={{ mt: 4, position: 'relative' }}>
         <Box sx={{ position: 'absolute', right: -20, top: -60, zIndex: 1 }}>
-          <SuperAugurk emotion="happy" size={120} />
+          <SuperAugurk 
+            message="Ik help je graag met het leren van ezelsbruggetjes!"
+            isHappy={true}
+          />
         </Box>
         
         <Typography 

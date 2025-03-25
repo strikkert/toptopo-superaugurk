@@ -21,7 +21,10 @@ export default function Settings() {
     <Container maxWidth="md">
       <Box sx={{ mt: 4, position: 'relative' }}>
         <Box sx={{ position: 'absolute', right: -20, top: -60, zIndex: 1 }}>
-          <SuperAugurk emotion="thinking" size={120} />
+          <SuperAugurk 
+            message="Ik help je graag met het aanpassen van je instellingen!"
+            isHappy={true}
+          />
         </Box>
 
         <Typography 
