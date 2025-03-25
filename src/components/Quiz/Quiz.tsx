@@ -200,23 +200,24 @@ export default function Quiz() {
           sx={{ 
             p: 2, 
             mb: 4, 
-            background: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
+            background: 'var(--duolingo-white)',
             borderRadius: '15px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
           }}
         >
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ fontFamily: 'Fredoka, sans-serif', color: '#2E7D32' }}>
+              <Typography variant="h6" sx={{ fontFamily: 'Fredoka, sans-serif', color: 'var(--duolingo-gray)' }}>
                 Voortgang: {state.answeredLocations.length} van {locations.length}
               </Typography>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ fontFamily: 'Fredoka, sans-serif', color: '#2E7D32' }}>
+              <Typography variant="h6" sx={{ fontFamily: 'Fredoka, sans-serif', color: 'var(--duolingo-gray)' }}>
                 Goed: {state.correctAnswers} | Fout: {state.wrongAnswers}
               </Typography>
             </Grid>
             <Grid item xs={12} md={4}>
-              <Typography variant="h6" sx={{ fontFamily: 'Fredoka, sans-serif', color: '#2E7D32' }}>
+              <Typography variant="h6" sx={{ fontFamily: 'Fredoka, sans-serif', color: 'var(--duolingo-gray)' }}>
                 Score: {Math.round((state.correctAnswers / (state.correctAnswers + state.wrongAnswers || 1)) * 100)}%
               </Typography>
             </Grid>
@@ -226,11 +227,11 @@ export default function Quiz() {
             value={progress} 
             sx={{ 
               mt: 2, 
-              height: 10, 
-              borderRadius: 5,
-              backgroundColor: '#E8F5E9',
+              height: 8, 
+              borderRadius: 4,
+              backgroundColor: 'var(--duolingo-light-gray)',
               '& .MuiLinearProgress-bar': {
-                backgroundColor: '#2E7D32',
+                backgroundColor: 'var(--duolingo-green)',
               }
             }} 
           />
@@ -242,9 +243,9 @@ export default function Quiz() {
           gutterBottom 
           align="center"
           sx={{
-            color: '#2E7D32',
-            fontFamily: 'Fredoka, sans-serif',
-            fontSize: '2.5rem',
+            color: 'var(--duolingo-gray)',
+            fontFamily: 'Chicle, cursive',
+            fontSize: '3rem',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)',
             mb: 4,
           }}
@@ -257,9 +258,10 @@ export default function Quiz() {
             <Card
               sx={{
                 borderRadius: '20px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                 overflow: 'hidden',
-                border: '4px solid #A5D6A7',
+                border: 'none',
+                background: 'var(--duolingo-white)',
               }}
             >
               <CardContent sx={{ p: 2 }}>
@@ -309,9 +311,9 @@ export default function Quiz() {
             <Card
               sx={{
                 borderRadius: '20px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-                background: 'linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)',
-                border: '4px solid #A5D6A7',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                background: 'var(--duolingo-white)',
+                border: 'none',
               }}
             >
               <CardContent>
@@ -320,7 +322,7 @@ export default function Quiz() {
                   gutterBottom
                   sx={{
                     fontFamily: 'Fredoka, sans-serif',
-                    color: '#2E7D32',
+                    color: 'var(--duolingo-gray)',
                   }}
                 >
                   Welke plaats zie je hier?
@@ -339,17 +341,17 @@ export default function Quiz() {
                           sx={{
                             mb: 2,
                             py: 2,
-                            borderRadius: '15px',
+                            borderRadius: '12px',
                             textTransform: 'none',
                             fontFamily: 'Fredoka, sans-serif',
                             fontSize: '1.1rem',
-                            backgroundColor: state.feedback === 'correct' && option === state.currentLocation?.name ? '#4CAF50' :
-                                         state.feedback === 'wrong' && option === state.currentLocation?.name ? '#f44336' :
-                                         state.feedback && option === state.currentLocation?.name ? '#4CAF50' : '#2E7D32',
+                            backgroundColor: state.feedback === 'correct' && option === state.currentLocation?.name ? 'var(--duolingo-green)' :
+                                         state.feedback === 'wrong' && option === state.currentLocation?.name ? 'var(--duolingo-red)' :
+                                         state.feedback && option === state.currentLocation?.name ? 'var(--duolingo-green)' : 'var(--duolingo-blue)',
                             '&:hover': {
-                              backgroundColor: state.feedback === 'correct' && option === state.currentLocation?.name ? '#43A047' :
+                              backgroundColor: state.feedback === 'correct' && option === state.currentLocation?.name ? '#4CAF50' :
                                            state.feedback === 'wrong' && option === state.currentLocation?.name ? '#d32f2f' :
-                                           state.feedback && option === state.currentLocation?.name ? '#43A047' : '#1B5E20',
+                                           state.feedback && option === state.currentLocation?.name ? '#4CAF50' : '#1B5E20',
                             },
                           }}
                         >
@@ -382,11 +384,11 @@ export default function Quiz() {
                           disabled={!state.isAnswering || !state.typedAnswer}
                           sx={{
                             py: 2,
-                            borderRadius: '15px',
+                            borderRadius: '12px',
                             textTransform: 'none',
                             fontFamily: 'Fredoka, sans-serif',
                             fontSize: '1.1rem',
-                            backgroundColor: '#2E7D32',
+                            backgroundColor: 'var(--duolingo-blue)',
                             '&:hover': {
                               backgroundColor: '#1B5E20',
                             },
@@ -402,7 +404,7 @@ export default function Quiz() {
                           mt: 2, 
                           textAlign: 'center',
                           fontFamily: 'Fredoka, sans-serif',
-                          color: state.feedback === 'correct' ? '#2E7D32' : '#d32f2f',
+                          color: state.feedback === 'correct' ? 'var(--duolingo-green)' : 'var(--duolingo-red)',
                         }}
                       >
                         {state.feedbackMessage}
@@ -410,7 +412,7 @@ export default function Quiz() {
                     )}
                   </Box>
                 ) : (
-                  <Typography variant="h5" sx={{ color: '#2E7D32', fontFamily: 'Fredoka, sans-serif' }}>
+                  <Typography variant="h5" sx={{ color: 'var(--duolingo-gray)', fontFamily: 'Fredoka, sans-serif' }}>
                     Quiz afgerond! Je score: {Math.round((state.correctAnswers / (state.correctAnswers + state.wrongAnswers || 1)) * 100)}%
                   </Typography>
                 )}

@@ -1,19 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Chicle&display=swap');
+
+:root {
+  --duolingo-green: #58CC02;
+  --duolingo-light-green: #FFC800;
+  --duolingo-red: #FF4B4B;
+  --duolingo-blue: #1CB0F6;
+  --duolingo-gray: #4D4D4D;
+  --duolingo-light-gray: #E5E5E5;
+  --duolingo-white: #FFFFFF;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Fredoka', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--duolingo-white);
+  color: var(--duolingo-gray);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Chicle', cursive;
+  color: var(--duolingo-gray);
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: 'Fredoka', monospace;
 }
 
 #root {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* Duolingo-achtige knoppen */
+.duolingo-button {
+  background-color: var(--duolingo-green);
+  color: var(--duolingo-white);
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.duolingo-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Duolingo-achtige kaarten */
+.duolingo-card {
+  background-color: var(--duolingo-white);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  margin: 16px 0;
+}
+
+/* Duolingo-achtige voortgangsbalk */
+.duolingo-progress {
+  height: 8px;
+  background-color: var(--duolingo-light-gray);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.duolingo-progress-bar {
+  height: 100%;
+  background-color: var(--duolingo-green);
+  transition: width 0.3s ease;
+}
+
+/* Duolingo-achtige feedback berichten */
+.duolingo-feedback {
+  padding: 16px;
+  border-radius: 12px;
+  margin: 16px 0;
+  font-weight: 500;
+}
+
+.duolingo-feedback.success {
+  background-color: #E5F7E8;
+  color: var(--duolingo-green);
+}
+
+.duolingo-feedback.error {
+  background-color: #FFE5E5;
+  color: var(--duolingo-red);
 } 
