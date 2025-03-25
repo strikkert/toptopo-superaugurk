@@ -324,8 +324,8 @@ export default function Quiz() {
       <Box sx={{ mt: 4, position: 'relative' }}>
         <Box sx={{ position: 'absolute', right: -20, top: -60, zIndex: 1 }}>
           <SuperAugurk 
-            message={state.message} 
-            isHappy={state.isHappy}
+            message="Hoi! Ik ben SuperAugurk en ik help je graag met het leren van topografie!"
+            isHappy={true}
           />
         </Box>
 
