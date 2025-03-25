@@ -75,7 +75,7 @@ interface QuizState {
   answeredLocations: string[];
   correctAnswers: number;
   wrongAnswers: number;
-  feedback: 'correct' | 'wrong' | null;
+  feedback: 'correct' | 'wrong' | 'warning' | null;
   isAnswering: boolean;
   questionType: QuestionType;
   typedAnswer: string;
@@ -145,18 +145,57 @@ export default function Quiz() {
   const checkTypedAnswer = () => {
     if (!state.currentLocation || !state.typedAnswer) return;
 
-    const isCorrect = state.typedAnswer.toLowerCase() === state.currentLocation.name.toLowerCase();
+    const correctAnswer = state.currentLocation.name.toLowerCase();
+    const userAnswer = state.typedAnswer.toLowerCase();
+    const isCorrect = userAnswer === correctAnswer;
+    
+    // Controleer op kleine typefouten
+    const hasSmallError = !isCorrect && (
+      // 1 letter verschil
+      levenshteinDistance(userAnswer, correctAnswer) === 1 ||
+      // 1 letter te weinig
+      correctAnswer.includes(userAnswer) && correctAnswer.length - userAnswer.length === 1 ||
+      // 1 letter te veel
+      userAnswer.includes(correctAnswer) && userAnswer.length - correctAnswer.length === 1
+    );
+
     setState(prev => ({
       ...prev,
       isAnswering: false,
-      feedback: isCorrect ? 'correct' : 'wrong',
-      feedbackMessage: isCorrect ? '✓ Goed gedaan!' : `✗ Niet juist. Het juiste antwoord is: ${state.currentLocation!.name}`,
-      correctAnswers: isCorrect ? prev.correctAnswers + 1 : prev.correctAnswers,
-      wrongAnswers: isCorrect ? prev.wrongAnswers : prev.wrongAnswers + 1,
+      feedback: isCorrect ? 'correct' : hasSmallError ? 'warning' : 'wrong',
+      feedbackMessage: isCorrect ? '✓ Goed gedaan!' : 
+                      hasSmallError ? `⚠️ Bijna goed! Je antwoord: "${state.typedAnswer}" (correct: "${state.currentLocation!.name}")` :
+                      `✗ Niet juist. Het juiste antwoord is: ${state.currentLocation!.name}`,
+      correctAnswers: isCorrect || hasSmallError ? prev.correctAnswers + 1 : prev.correctAnswers,
+      wrongAnswers: isCorrect || hasSmallError ? prev.wrongAnswers : prev.wrongAnswers + 1,
       answeredLocations: [...prev.answeredLocations, state.currentLocation!.name],
     }));
 
     setTimeout(selectNextLocation, 2000);
+  };
+
+  // Functie om de afstand tussen twee strings te berekenen (Levenshtein distance)
+  const levenshteinDistance = (a: string, b: string): number => {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+
+    const matrix = Array(b.length + 1).fill(null).map(() => Array(a.length + 1).fill(null));
+
+    for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
+    for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
+
+    for (let j = 1; j <= b.length; j++) {
+      for (let i = 1; i <= a.length; i++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        matrix[j][i] = Math.min(
+          matrix[j][i - 1] + 1,
+          matrix[j - 1][i] + 1,
+          matrix[j - 1][i - 1] + cost
+        );
+      }
+    }
+
+    return matrix[b.length][a.length];
   };
 
   const handleMultipleChoiceAnswer = (answer: string) => {
@@ -368,10 +407,11 @@ export default function Quiz() {
                               <Box sx={{ 
                                 display: 'flex', 
                                 alignItems: 'center',
-                                color: state.feedback === 'correct' ? 'var(--duolingo-green)' : 'var(--duolingo-red)',
+                                color: state.feedback === 'correct' ? 'var(--duolingo-green)' : 
+                                      state.feedback === 'warning' ? '#FF9800' : 'var(--duolingo-red)',
                                 mr: 1
                               }}>
-                                {state.feedback === 'correct' ? '✓' : '✗'}
+                                {state.feedback === 'correct' ? '✓' : state.feedback === 'warning' ? '⚠️' : '✗'}
                               </Box>
                             ),
                           }}
@@ -380,20 +420,24 @@ export default function Quiz() {
                             '& .MuiOutlinedInput-root': {
                               borderRadius: '12px',
                               backgroundColor: state.feedback === 'correct' ? '#E8F5E9' :
+                                           state.feedback === 'warning' ? '#FFF3E0' :
                                            state.feedback === 'wrong' ? '#FFEBEE' : 'white',
                               '& fieldset': {
                                 borderColor: state.feedback === 'correct' ? 'var(--duolingo-green)' :
+                                           state.feedback === 'warning' ? '#FF9800' :
                                            state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-gray)',
                                 borderWidth: state.feedback ? '2px' : '1px',
                               },
                               '&:hover fieldset': {
                                 borderColor: state.feedback === 'correct' ? 'var(--duolingo-green)' :
+                                           state.feedback === 'warning' ? '#FF9800' :
                                            state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-blue)',
                               },
                             },
                             '& .MuiInputLabel-root': {
                               fontFamily: 'Fredoka, sans-serif',
                               color: state.feedback === 'correct' ? 'var(--duolingo-green)' :
+                                     state.feedback === 'warning' ? '#FF9800' :
                                      state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-gray)',
                             },
                           }}
@@ -410,14 +454,17 @@ export default function Quiz() {
                             fontFamily: 'Fredoka, sans-serif',
                             fontSize: '1.1rem',
                             backgroundColor: state.feedback === 'correct' ? 'var(--duolingo-green)' :
+                                         state.feedback === 'warning' ? 'var(--duolingo-yellow)' :
                                          state.feedback === 'wrong' ? 'var(--duolingo-red)' : 'var(--duolingo-blue)',
                             '&:hover': {
                               backgroundColor: state.feedback === 'correct' ? '#4CAF50' :
+                                           state.feedback === 'warning' ? '#FF9800' :
                                            state.feedback === 'wrong' ? '#d32f2f' : '#1B5E20',
                             },
                           }}
                         >
                           {state.feedback === 'correct' ? 'Goed!' :
+                           state.feedback === 'warning' ? 'Bijna goed!' :
                            state.feedback === 'wrong' ? 'Fout!' : 'Controleer'}
                         </Button>
                       </Box>
@@ -427,14 +474,17 @@ export default function Quiz() {
                         mt: 2, 
                         p: 2,
                         borderRadius: '12px',
-                        backgroundColor: state.feedback === 'correct' ? '#E8F5E9' : '#FFEBEE',
-                        border: `2px solid ${state.feedback === 'correct' ? 'var(--duolingo-green)' : 'var(--duolingo-red)'}`,
+                        backgroundColor: state.feedback === 'correct' ? '#E8F5E9' : 
+                                      state.feedback === 'warning' ? '#FFF3E0' : '#FFEBEE',
+                        border: `2px solid ${state.feedback === 'correct' ? 'var(--duolingo-green)' : 
+                                         state.feedback === 'warning' ? '#FF9800' : 'var(--duolingo-red)'}`,
                       }}>
                         <Typography 
                           sx={{ 
                             textAlign: 'center',
                             fontFamily: 'Fredoka, sans-serif',
-                            color: state.feedback === 'correct' ? 'var(--duolingo-green)' : 'var(--duolingo-red)',
+                            color: state.feedback === 'correct' ? 'var(--duolingo-green)' : 
+                                  state.feedback === 'warning' ? '#FF9800' : 'var(--duolingo-red)',
                             fontSize: '1.2rem',
                             fontWeight: 600,
                           }}
